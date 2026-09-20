@@ -19,11 +19,16 @@ Library.ForceCheckbox = false
 Library.ShowToggleFrameInKeybinds = true
 
 local Window = Library:CreateWindow({
-	Title = "Nevaeh",
-	Footer = "version: release",
-	Icon = 81575397431635,
-	NotifySide = "Right",
-	ShowCustomCursor = true,
+    Title = "Nevaeh",
+    Footer = "v1.0.0",
+    ToggleKeybind = Enum.KeyCode.RightControl,
+    Center = true,
+    AutoShow = true,
+    
+    Icon = 81575397431635, -- <-- ADD YOUR WINDOW ICON HERE (Roblox asset ID or icon name)
+    
+    NotifySide = "Right",
+    ShowCustomCursor = true,
 })
 
 
