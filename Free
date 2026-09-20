@@ -21,7 +21,7 @@ Library.ShowToggleFrameInKeybinds = true
 local Window = Library:CreateWindow({
 	Title = "Nevaeh",
 	Footer = "version: release",
-	Icon = 105618814446773,
+	Icon = 81575397431635,
 	NotifySide = "Right",
 	ShowCustomCursor = true,
 })
