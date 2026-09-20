@@ -20,15 +20,14 @@ Library.ShowToggleFrameInKeybinds = true
 
 local Window = Library:CreateWindow({
     Title = "Nevaeh",
-    Footer = "v1.0.1",
+    Footer = "v1.0.2",
     ToggleKeybind = Enum.KeyCode.RightControl,
     Center = true,
     AutoShow = true,
     
-    Icon = "rbxassetid://81575397431635", -- <-- Fixed with the rbxassetid prefix
+    Icon = "sparkles", -- <-- Using a built-in Lucide icon name instead
     
     NotifySide = "Right",
     ShowCustomCursor = true,
 })
-
 local MainTab = Window:AddTab("Main", "bot")
