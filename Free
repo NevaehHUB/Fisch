@@ -25,7 +25,7 @@ local Window = Library:CreateWindow({
     Center = true,
     AutoShow = true,
     
-    Icon = "sparkles", -- <-- Using a built-in Lucide icon name instead
+    Icon = "cog", -- <-- Using a built-in Lucide icon name instead
     
     NotifySide = "Right",
     ShowCustomCursor = true,
