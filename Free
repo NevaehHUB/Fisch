@@ -20,16 +20,15 @@ Library.ShowToggleFrameInKeybinds = true
 
 local Window = Library:CreateWindow({
     Title = "Nevaeh",
-    Footer = "v1.0.0",
+    Footer = "v1.0.1",
     ToggleKeybind = Enum.KeyCode.RightControl,
     Center = true,
     AutoShow = true,
     
-    Icon = 81575397431635, -- <-- ADD YOUR WINDOW ICON HERE (Roblox asset ID or icon name)
+    Icon = "rbxassetid://81575397431635", -- <-- Fixed with the rbxassetid prefix
     
     NotifySide = "Right",
     ShowCustomCursor = true,
 })
-
 
 local MainTab = Window:AddTab("Main", "bot")
