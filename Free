@@ -21,7 +21,7 @@ Library.ShowToggleFrameInKeybinds = true
 local Window = Library:CreateWindow({
 	Title = "Nevaeh",
 	Footer = "version: release",
-	Icon = blob:https://gemini.google.com/d2df6892-80a8-4c16-bf66-af3a9f330ed0,
+	Icon = 68351160ddf2e06ad858384340b8bbac,
 	NotifySide = "Right",
 	ShowCustomCursor = true,
 })
