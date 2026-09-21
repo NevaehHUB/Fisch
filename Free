@@ -1,7 +1,7 @@
 --[[
     Clima Project, ALL RIGHTS OWNED BY ECLIPSE AND SELENA
-    Version: v1.0.8 | GUI: Obsidian
-    Custom toggle/lock buttons + Config Save/Load group
+    Version: v1.0.9 | GUI: Obsidian
+    Scoped blue theme (only touches Clima UI, never game UI)
 ]]
 
 print("[Clima] ===== STARTING =====")
@@ -11,13 +11,50 @@ local Library     = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 print("[Clima] Library loaded:", typeof(Library))
 
-local Players          = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local LocalPlayer      = Players.LocalPlayer
+-- ============================================================
+--  💙 BLUE THEME — set BEFORE CreateWindow so the library
+--  paints itself blue from the start. Never touches game UI.
+-- ============================================================
+pcall(function()
+    local S = Library.Scheme
+    if not S then return end
 
+    local CYAN      = Color3.fromRGB(  0, 229, 255)  -- borders / accents
+    local CYAN_SOFT = Color3.fromRGB(180, 235, 255)  -- text
+    local BLUE      = Color3.fromRGB( 30, 144, 255)  -- button fills
+    local BLUE_DARK = Color3.fromRGB( 20,  70, 130)  -- tab backgrounds
+    local BG_DARK   = Color3.fromRGB( 10,  18,  30)  -- main background
+    local BG_MID    = Color3.fromRGB( 18,  32,  50)  -- panel background
+
+    S.Main           = BG_DARK
+    S.Background     = BG_MID
+    S.Popup          = BG_MID
+    S.Outline        = CYAN
+    S.FontColor      = CYAN_SOFT
+    S.Button         = BLUE
+    S.ButtonBorder   = CYAN
+    S.Accent         = CYAN
+    S.Toggle         = CYAN
+    S.ToggleBorder   = CYAN
+    S.Slider         = CYAN
+    S.SliderBorder   = BLUE
+    S.Dropdown       = BG_MID
+    S.DropdownBorder = CYAN
+    S.Tab            = BG_DARK
+    S.TabBorder      = BLUE_DARK
+    S.Textbox        = BG_DARK
+    S.Placeholder    = Color3.fromRGB(120, 180, 210)
+    S.Red            = Color3.fromRGB(255,  90, 110)
+    S.Green          = Color3.fromRGB(120, 240, 180)
+end)
+print("[Clima] Blue theme applied to Scheme")
+
+-- ============================================================
+--  WINDOW
+-- ============================================================
 local Window = Library:CreateWindow({
     Title             = "Clima",
-    Footer            = "v1.0.8",
+    Footer            = "v1.0.9",
     Center            = true,
     AutoShow          = true,
     Icon              = 4483345998,
@@ -27,6 +64,9 @@ local Window = Library:CreateWindow({
 })
 print("[Clima] Window created")
 
+-- ============================================================
+--  TABS
+-- ============================================================
 local MainTab     = Window:AddTab("Main", "bot")
 local SettingsTab = Window:AddTab("UI Settings", "settings")
 
@@ -34,7 +74,7 @@ local SettingsTab = Window:AddTab("UI Settings", "settings")
 --  MAIN TAB
 -- ============================================================
 local MainLeft = MainTab:AddGroupbox({ Side = "Left", Name = "Main", IconName = "cog" })
-MainLeft:AddLabel("Clima Project — v1.0.8")
+MainLeft:AddLabel("Clima Project — v1.0.9")
 MainLeft:AddLabel("All Rights Owned by Eclipse and Selena", true)
 MainLeft:AddDivider()
 
@@ -83,369 +123,24 @@ Library.ToggleKeybind = Library.Options.MenuKeybind
 MenuGroup:AddButton({ Text = "Unload", Func = function() Library:Unload() end })
 
 -- ============================================================
---  💾 CONFIG GROUP (SaveManager)
---  Creates a "Configs" groupbox on UI Settings where users
---  can name, save, load, and delete their own configurations.
+--  💾 CONFIG GROUP
+--  User can save / load / delete named configs from the
+--  "Configs" groupbox on the UI Settings tab.
 -- ============================================================
 SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings()
 SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
 SaveManager:SetFolder("ClimaProject/configs")
-SaveManager:BuildConfigSection(SettingsTab) -- builds the config UI on the settings tab
+SaveManager:BuildConfigSection(SettingsTab)
 SaveManager:LoadAutoloadConfig()
 print("[Clima] Config group built")
 
 -- ============================================================
---  BLUE/CYAN OUTLINE
--- ============================================================
-pcall(function()
-    task.spawn(function()
-        task.wait(0.3)
-        local cyan = Color3.fromRGB(0, 229, 255)
-        local n = 0
-        for _, obj in ipairs(game:GetDescendants()) do
-            if obj:IsA("UIStroke") then
-                obj.Color = cyan
-                obj.Transparency = math.min(obj.Transparency, 0.2)
-                obj.Thickness = math.max(obj.Thickness, 1)
-                n = n + 1
-            end
-        end
-        print("[Clima] Recolored", n, "UIStrokes to cyan")
-    end)
-end)
-
--- ============================================================
---  🎛️ CUSTOM MOBILE BUTTONS
---  We build our OWN toggle + lock buttons from scratch.
---  No more trying to patch the library's buttons.
--- ============================================================
-pcall(function()
-    local ICON_COLOR     = Color3.fromRGB(148, 203, 255) -- #94cbff
-    local BG_COLOR       = Color3.fromRGB(15, 15, 20)
-    local BG_HOVER       = Color3.fromRGB(30, 30, 40)
-    local LOCKED_COLOR   = Color3.fromRGB(255, 90, 110)  -- red when locked
-
-    -- ---- Container ----
-    local sg = Instance.new("ScreenGui")
-    sg.Name = "ClimaMobileButtons"
-    sg.ResetOnSpawn = false
-    sg.IgnoreGuiInset = true
-    sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    sg.DisplayOrder = 9999
-
-    -- Parent to gethui/CoreGui
-    local parented = false
-    pcall(function()
-        if gethui then
-            sg.Parent = gethui()
-            parented = true
-        end
-    end)
-    if not parented then
-        pcall(function()
-            sg.Parent = game:GetService("CoreGui")
-            parented = true
-        end)
-    end
-    if not parented then
-        sg.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    end
-    print("[Clima] Custom button ScreenGui parented to:", sg.Parent and sg.Parent:GetFullName() or "?")
-end)
-
--- Isolated from the pcall above so if that fails we still try
-local function buildCustomButtons()
-    local ICON_COLOR   = Color3.fromRGB(148, 203, 255)
-    local BG_COLOR     = Color3.fromRGB(15, 15, 20)
-    local BG_HOVER     = Color3.fromRGB(30, 30, 40)
-    local LOCKED_COLOR = Color3.fromRGB(255, 90, 110)
-
-    local sg = Instance.new("ScreenGui")
-    sg.Name = "ClimaMobileButtons"
-    sg.ResetOnSpawn = false
-    sg.IgnoreGuiInset = true
-    sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    sg.DisplayOrder = 9999
-
-    local ok = pcall(function() sg.Parent = gethui() end)
-    if not ok then
-        ok = pcall(function() sg.Parent = game:GetService("CoreGui") end)
-    end
-    if not ok then
-        pcall(function() sg.Parent = LocalPlayer:WaitForChild("PlayerGui", 5) end)
-    end
-
-    -- ---- Draggable container (so user can move buttons) ----
-    local container = Instance.new("Frame")
-    container.Name = "Container"
-    container.BackgroundTransparency = 1
-    container.Size = UDim2.new(0, 90, 0, 45)
-    container.Position = UDim2.new(1, -105, 0, 80) -- top-right
-    container.Parent = sg
-
-    local dragActive = false
-    local dragStart, startPos
-
-    -- ---- Build a button helper ----
-    local function makeBtn(name, size, pos)
-        local btn = Instance.new("ImageButton")
-        btn.Name = name
-        btn.Size = size
-        btn.Position = pos
-        btn.BackgroundColor3 = BG_COLOR
-        btn.BackgroundTransparency = 0.15
-        btn.BorderSizePixel = 0
-        btn.Image = ""  -- we draw with primitives
-        btn.AutoButtonColor = false
-        btn.Parent = container
-
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 8)
-        corner.Parent = btn
-
-        local stroke = Instance.new("UIStroke")
-        stroke.Color = ICON_COLOR
-        stroke.Thickness = 1.5
-        stroke.Transparency = 0.2
-        stroke.Parent = btn
-
-        btn.MouseEnter:Connect(function()
-            btn.BackgroundColor3 = BG_HOVER
-        end)
-        btn.MouseLeave:Connect(function()
-            btn.BackgroundColor3 = BG_COLOR
-        end)
-
-        return btn, stroke
-    end
-
-    -- ---- Custom drawn icons (scaled for a 40x40 button) ----
-    local function clearIcon(btn)
-        for _, c in ipairs(btn:GetChildren()) do
-            if c.Name == "IconRoot" then c:Destroy() end
-        end
-    end
-
-    local function iconSizes(btn)
-        local s = btn.AbsoluteSize.X
-        if not s or s < 5 then s = 40 end
-        return s, math.max(1.5, s * (2/24)), math.max(2, s * (2/24))
-    end
-
-    -- Lock icon (closed padlock)
-    local function drawLockIcon(btn, open)
-        clearIcon(btn)
-        local S, TH, R = iconSizes(btn)
-
-        local root = Instance.new("Frame")
-        root.Name = "IconRoot"
-        root.BackgroundTransparency = 1
-        root.Size = UDim2.fromScale(1, 1)
-        root.Parent = btn
-
-        -- Body
-        local body = Instance.new("Frame")
-        body.BackgroundTransparency = 1
-        body.Position = UDim2.fromScale(5/24, 10/24)
-        body.Size     = UDim2.fromScale(14/24, 10/24)
-        body.Parent   = root
-        local bc = Instance.new("UICorner")
-        bc.CornerRadius = UDim.new(0, R)
-        bc.Parent = body
-        local bs = Instance.new("UIStroke")
-        bs.Color = ICON_COLOR
-        bs.Thickness = TH
-        bs.Parent = body
-
-        -- Keyhole dot
-        local dot = Instance.new("Frame")
-        dot.BackgroundColor3 = ICON_COLOR
-        dot.BorderSizePixel = 0
-        dot.Position = UDim2.fromScale(11/24, 14/24)
-        dot.Size     = UDim2.fromScale(2/24, 2/24)
-        dot.Parent   = root
-        local dc = Instance.new("UICorner")
-        dc.CornerRadius = UDim.new(1, 0)
-        dc.Parent = dot
-
-        -- Shackle arc (top half circle)
-        local clipW = open and (7/24) or (8/24)
-        local clip = Instance.new("Frame")
-        clip.BackgroundTransparency = 1
-        clip.Position = UDim2.fromScale(8/24, 3/24)
-        clip.Size     = UDim2.fromScale(clipW, 4/24)
-        clip.ClipsDescendants = true
-        clip.Parent = root
-
-        local arc = Instance.new("Frame")
-        arc.BackgroundTransparency = 1
-        arc.Size = UDim2.new((8/24) / clipW, 0, 2, 0)
-        arc.Parent = clip
-        local ac = Instance.new("UICorner")
-        ac.CornerRadius = UDim.new(1, 0)
-        ac.Parent = arc
-        local as_ = Instance.new("UIStroke")
-        as_.Color = ICON_COLOR
-        as_.Thickness = TH
-        as_.Parent = arc
-
-        -- Vertical drops
-        local function drop(x)
-            local l = Instance.new("Frame")
-            l.BackgroundColor3 = ICON_COLOR
-            l.BorderSizePixel = 0
-            l.Position = UDim2.new(x, -TH/2, 7/24, 0)
-            l.Size     = UDim2.new(0, TH, 3/24, 0)
-            l.Parent   = root
-        end
-        drop(8/24)
-        if not open then drop(16/24) end
-    end
-
-    -- Dashboard icon (4 rects)
-    local function drawDashIcon(btn)
-        clearIcon(btn)
-        local S, TH, R = iconSizes(btn)
-
-        local root = Instance.new("Frame")
-        root.Name = "IconRoot"
-        root.BackgroundTransparency = 1
-        root.Size = UDim2.fromScale(1, 1)
-        root.Parent = btn
-
-        local function box(x, y, w, h)
-            local f = Instance.new("Frame")
-            f.BackgroundTransparency = 1
-            f.Position = UDim2.fromScale(x, y)
-            f.Size     = UDim2.fromScale(w, h)
-            f.Parent   = root
-            local c = Instance.new("UICorner")
-            c.CornerRadius = UDim.new(0, math.max(1, R * 0.5))
-            c.Parent = f
-            local s = Instance.new("UIStroke")
-            s.Color = ICON_COLOR
-            s.Thickness = TH
-            s.Parent = f
-        end
-
-        box( 6/24,  6/24, 5/24, 8/24)
-        box(13/24,  6/24, 5/24, 4/24)
-        box(13/24, 12/24, 5/24, 8/24)
-        box( 6/24, 16/24, 5/24, 4/24)
-    end
-
-    -- ---- Create the two buttons ----
-    local toggleBtn, toggleStroke = makeBtn("ClimaToggleBtn", UDim2.new(0, 40, 0, 40), UDim2.new(0, 0, 0, 0))
-    local lockBtn,   lockStroke   = makeBtn("ClimaLockBtn",   UDim2.new(0, 40, 0, 40), UDim2.new(0, 48, 0, 0))
-
-    drawDashIcon(toggleBtn)
-    drawLockIcon(lockBtn, false)
-
-    print("[Clima] Custom buttons built")
-
-    -- ---- Behavior ----
-    local windowVisible = true
-    local locked = false
-
-    -- Helper: hide/show the main window
-    local function setMainWindowVisible(v)
-        local ok1 = pcall(function()
-            if v then Window:Show() else Window:Hide() end
-        end)
-        if not ok1 then
-            pcall(function()
-                if Window.SetVisible then
-                    Window:SetVisible(v)
-                elseif Window.Visible ~= nil then
-                    Window.Visible = v
-                end
-            end)
-        end
-        windowVisible = v
-    end
-
-    -- Toggle button click
-    toggleBtn.MouseButton1Click:Connect(function()
-        if locked then return end -- locked, ignore toggle
-        setMainWindowVisible(not windowVisible)
-    end)
-
-    -- Lock button click — "locks" the toggle button away
-    local lockOpenState = false
-    lockBtn.MouseButton1Click:Connect(function()
-        locked = not locked
-        lockOpenState = locked
-        drawLockIcon(lockBtn, lockOpenState)
-        if locked then
-            -- Locking: hide main window and disable toggle button
-            toggleBtn.BackgroundTransparency = 0.7
-            toggleStroke.Color = Color3.fromRGB(100, 100, 100)
-            lockStroke.Color = Color3.fromRGB(255, 90, 110)
-            setMainWindowVisible(false)
-        else
-            -- Unlocking: restore toggle button
-            toggleBtn.BackgroundTransparency = 0.15
-            toggleStroke.Color = ICON_COLOR
-            lockStroke.Color = ICON_COLOR
-            setMainWindowVisible(true)
-        end
-    end)
-
-    -- ---- Dragging support ----
-    local function isOnContainer(inputPos)
-        local ap = container.AbsolutePosition
-        local as = container.AbsoluteSize
-        return inputPos.X >= ap.X and inputPos.X <= ap.X + as.X
-           and inputPos.Y >= ap.Y and inputPos.Y <= ap.Y + as.Y
-    end
-
-    local dragStartPos
-    local dragStartTouch
-
-    local function onInputBegan(input, gpe)
-        if gpe then return end
-        if input.UserInputType == Enum.UserInputType.Touch then
-            local pos = Vector2.new(input.Position.X, input.Position.Y)
-            if isOnContainer(pos) then
-                dragStartTouch = pos
-                dragStartPos = container.Position
-            end
-        end
-    end
-
-    local function onInputChanged(input)
-        if input.UserInputType == Enum.UserInputType.Touch and dragStartTouch then
-            local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStartTouch
-            container.Position = UDim2.new(
-                dragStartPos.X.Scale, dragStartPos.X.Offset + delta.X,
-                dragStartPos.Y.Scale, dragStartPos.Y.Offset + delta.Y
-            )
-        end
-    end
-
-    local function onInputEnded(input)
-        if input.UserInputType == Enum.UserInputType.Touch then
-            dragStartTouch = nil
-        end
-    end
-
-    UserInputService.InputBegan:Connect(onInputBegan)
-    UserInputService.InputChanged:Connect(onInputChanged)
-    UserInputService.InputEnded:Connect(onInputEnded)
-
-    print("[Clima] Custom buttons wired up")
-end
-
-pcall(buildCustomButtons)
-print("[Clima] Custom button block finished")
-
--- ============================================================
---  NOTIFY
+--  DONE
 -- ============================================================
 Library:Notify({
     Title = "Clima Project",
-    Description = "v1.0.8 loaded — configs + custom buttons",
+    Description = "v1.0.9 loaded",
     Time = 5,
 })
 
