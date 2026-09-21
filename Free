@@ -1,13 +1,11 @@
 -- Clima Project, OWNED BY ECLIPSE AND SELENA ALL RIGHTS REVERSED 
 --]]
 
--- Window and visble function
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 
--- TweenService and other bs
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -20,7 +18,7 @@ Library.ShowToggleFrameInKeybinds = true
 
 local Window = Library:CreateWindow({
     Title = "Clima",
-    Footer = "v1.0.3",
+    Footer = "v1.0.4",
     ToggleKeybind = Enum.KeyCode.RightControl,
     Center = true,
     AutoShow = true,
@@ -31,22 +29,26 @@ local Window = Library:CreateWindow({
     ShowCustomCursor = true,
 })
 
-----------------------------------------------------------------------
--- PROPER OBSIDIAN / LINORIA THEME OVERRIDE
-----------------------------------------------------------------------
--- Set the specific colors you requested
-Library.Theme.OutlineColor = Color3.fromRGB(255, 105, 180) -- Hot Pink Outline
-Library.Theme.AccentColor = Color3.fromRGB(0, 220, 255)    -- Cyan/Blue Highlights
-Library.Theme.FontColor = Color3.fromRGB(255, 255, 255)    -- White Text
-Library.Theme.BackgroundColor = Color3.fromRGB(15, 15, 15) -- Dark Background
-Library.Theme.MainColor = Color3.fromRGB(25, 25, 25)       -- Dark Main Panels
+local MainTab = Window:AddTab("Main", "bot")
 
--- Force the UI to refresh and apply the new colors
-Library:UpdateColorsUsingRegistry()
-
--- Give ThemeManager access to the library (so it doesn't overwrite your defaults immediately)
+-- Initialize managers BEFORE we change the colors so they don't overwrite them
 ThemeManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
-----------------------------------------------------------------------
 
-local MainTab = Window:AddTab("Main", "bot")
+----------------------------------------------------------------------
+-- FORCE PURE BLUE/CYAN THEME
+----------------------------------------------------------------------
+local pureCyan = Color3.fromRGB(0, 220, 255)
+
+-- Override the Obsidian/Linoria Theme table directly
+Library.Theme.AccentColor = pureCyan
+Library.Theme.OutlineColor = pureCyan
+Library.Theme.FontColor = Color3.fromRGB(255, 255, 255)
+Library.Theme.BackgroundColor = Color3.fromRGB(15, 15, 15)
+Library.Theme.MainColor = Color3.fromRGB(20, 20, 20)
+
+-- Safely force the UI to render the new colors over everything
+if type(Library.UpdateColorsUsingRegistry) == "function" then
+    Library:UpdateColorsUsingRegistry()
+end
+----------------------------------------------------------------------
