@@ -1,11 +1,13 @@
--- Clima Project, OWNED BY ECLIPSE AND SELENA ALL RIGHTS REVERSED 
+-- Clima Project, OWNED BY ECLIPSE AND SELENA ALL RIGHTS REVERSED
 --]]
 
+-- Window and visble function
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 
+-- TweenService and other bs
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -18,37 +20,113 @@ Library.ShowToggleFrameInKeybinds = true
 
 local Window = Library:CreateWindow({
     Title = "Clima",
-    Footer = "v1.0.4",
+    Footer = "v1.0.2",
     ToggleKeybind = Enum.KeyCode.RightControl,
     Center = true,
     AutoShow = true,
-    
+
     Icon = "cog",
-    
+
     NotifySide = "Right",
     ShowCustomCursor = true,
 })
-
 local MainTab = Window:AddTab("Main", "bot")
 
--- Initialize managers BEFORE we change the colors so they don't overwrite them
-ThemeManager:SetLibrary(Library)
-SaveManager:SetLibrary(Library)
+-- ============================================================
+-- Blue/Cyan outline around the main Clima window
+-- ============================================================
+local OUTLINE_COLOR = Color3.fromRGB(0, 200, 255) -- cyan-blue
+local OUTLINE_THICKNESS = 2
 
-----------------------------------------------------------------------
--- FORCE PURE BLUE/CYAN THEME
-----------------------------------------------------------------------
-local pureCyan = Color3.fromRGB(0, 220, 255)
-
--- Override the Obsidian/Linoria Theme table directly
-Library.Theme.AccentColor = pureCyan
-Library.Theme.OutlineColor = pureCyan
-Library.Theme.FontColor = Color3.fromRGB(255, 255, 255)
-Library.Theme.BackgroundColor = Color3.fromRGB(15, 15, 15)
-Library.Theme.MainColor = Color3.fromRGB(20, 20, 20)
-
--- Safely force the UI to render the new colors over everything
-if type(Library.UpdateColorsUsingRegistry) == "function" then
-    Library:UpdateColorsUsingRegistry()
+-- Grab the container the library actually parents to (executor-safe)
+local function getUIRoot()
+    if gethui then
+        local ok, hui = pcall(gethui)
+        if ok and hui then return hui end
+    end
+    return game:GetService("CoreGui")
 end
-----------------------------------------------------------------------
+
+local uiRoot = getUIRoot()
+local screenSize = workspace.CurrentCamera.ViewportSize
+
+-- Ignore fullscreen overlays / blur / background dimmers, and skip tiny utility frames.
+local IGNORED_NAMES = {
+    ["Background"] = true,
+    ["Blur"] = true,
+    ["Overlay"] = true,
+    ["Dim"] = true,
+    ["Shadow"] = true,
+    ["Cursor"] = true,
+    ["Notification"] = true,
+    ["Notifications"] = true,
+    ["Tooltip"] = true,
+    ["KeybindList"] = true,
+    ["Watermark"] = true,
+}
+
+local function isMainWindowFrame(frame)
+    if not frame:IsA("GuiObject") then return false end
+    if not frame.Visible then return false end
+    if IGNORED_NAMES[frame.Name] then return false end
+
+    -- Must have a real, non-fullscreen size
+    local size = frame.AbsoluteSize
+    if size.X < 150 or size.Y < 100 then return false end
+    if size.X >= screenSize.X * 0.98 and size.Y >= screenSize.Y * 0.98 then return false end
+
+    -- The main panel is a Frame (or CanvasGroup/ImageLabel), not a TextButton etc.
+    if not (frame:IsA("Frame") or frame:IsA("CanvasGroup") or frame:IsA("ImageLabel")) then
+        return false
+    end
+
+    return true
+end
+
+local function applyOutline(screenGui)
+    -- The window panel lives somewhere in this ScreenGui; find the biggest valid frame.
+    local best, bestArea = nil, 0
+    for _, d in ipairs(screenGui:GetDescendants()) do
+        if isMainWindowFrame(d) then
+            local size = d.AbsoluteSize
+            local area = size.X * size.Y
+            if area > bestArea then
+                best, bestArea = d, area
+            end
+        end
+    end
+    if not best then return end
+
+    local stroke = best:FindFirstChild("ClimaWindowOutline")
+    if not stroke then
+        stroke = Instance.new("UIStroke")
+        stroke.Name = "ClimaWindowOutline"
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        stroke.LineJoinMode = Enum.LineJoinMode.Round
+        stroke.Thickness = OUTLINE_THICKNESS
+        stroke.Color = OUTLINE_COLOR
+        stroke.Parent = best
+    end
+end
+
+-- Apply to any ScreenGui in the UI root, and keep re-checking as the library builds itself
+local function applyAll()
+    for _, gui in ipairs(uiRoot:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            applyOutline(gui)
+        end
+    end
+end
+
+task.spawn(function()
+    for _ = 1, 40 do
+        applyAll()
+        task.wait(0.25)
+    end
+end)
+
+uiRoot.DescendantAdded:Connect(function(desc)
+    if desc:IsA("ScreenGui") then
+        task.defer(applyAll)
+    end
+end)
