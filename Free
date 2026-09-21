@@ -1,185 +1,198 @@
 --[[
-    Clima Project, ALL RIGHTS OWNED BY ECLIPSE AND SELENA
-    Version: v1.1.0 | GUI: Obsidian
-    Blue theme scoped ONLY to Clima — never touches game UI
+    Clima Project, OWNED BY ECLIPSE AND SELENA ALL RIGHTS REVERSED
+    Version: v1.0.2 | GUI: Obsidian
 ]]
 
 print("[Clima] ===== STARTING =====")
 
+-- ============================================================
+--  1. LOAD LIBRARY
+-- ============================================================
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
-local Library     = loadstring(game:HttpGet(repo .. "Library.lua"))()
-local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
-print("[Clima] Library loaded:", typeof(Library))
 
--- ============================================================
---  SNAPSHOT existing ScreenGuis BEFORE creating our window
---  So we can find OUR ScreenGui afterward by process of
---  elimination. This is how we avoid touching game UI.
--- ============================================================
-local before = {}
+local libSource = game:HttpGet(repo .. "Library.lua")
+print("[Clima] Library.lua fetched, length:", #libSource)
 
-local function snapshotContainer(container)
-    if not container then return end
-    local ok, list = pcall(function() return container:GetChildren() end)
-    if not ok or not list then return end
-    for _, sg in ipairs(list) do
-        if sg:IsA("ScreenGui") then
-            before[sg] = true
-        end
-    end
+local Library = loadstring(libSource)()
+print("[Clima] Library loaded. Type:", typeof(Library))
+
+assert(type(Library) == "table", "[Clima] Library is not a table")
+assert(type(Library.CreateWindow) == "function", "[Clima] Library.CreateWindow missing")
+assert(type(Library.Scheme) == "table", "[Clima] Library.Scheme missing")
+
+print("[Clima] Library.Scheme keys:")
+for k, v in pairs(Library.Scheme) do
+    print("    ", k, "=", typeof(v))
 end
 
-snapshotContainer(game:GetService("CoreGui"))
-if gethui then pcall(function() snapshotContainer(gethui()) end) end
-pcall(function()
-    snapshotContainer(game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui", 5))
-end)
-
-print("[Clima] Snapshotted", (function() local n = 0 for _ in pairs(before) do n = n + 1 end return n end)(), "existing ScreenGuis")
-
 -- ============================================================
---  WINDOW — default theme, library paints itself normally
+--  2. CREATE WINDOW
 -- ============================================================
 local Window = Library:CreateWindow({
-    Title             = "Clima",
-    Footer            = "v1.1.0",
-    Center            = true,
-    AutoShow          = true,
-    Icon              = 4483345998,
-    NotifySide        = "Right",
-    ShowCustomCursor  = true,
-    MobileButtonsSide = "Right",
+    Title            = "Clima",
+    Footer           = "v1.0.0",
+    Center           = true,
+    AutoShow         = true,
+    Icon             = 4483345998,
+    NotifySide       = "Right",
+    ShowCustomCursor = true,
 })
-print("[Clima] Window created")
+print("[Clima] Window created:", typeof(Window))
 
 -- ============================================================
---  FIND our newly-created ScreenGui and recolor ONLY its
---  UIStrokes. No game UI is ever touched.
+--  3. TABS
 -- ============================================================
-local climaGui = nil
+local MainTab = Window:AddTab("Main", "bot")
+print("[Clima] Main tab added")
 
-local function findNewGui(container)
-    if climaGui or not container then return end
-    local ok, list = pcall(function() return container:GetChildren() end)
-    if not ok or not list then return end
-    for _, sg in ipairs(list) do
-        if sg:IsA("ScreenGui") and not before[sg] then
-            climaGui = sg
-            return
-        end
-    end
-end
-
-findNewGui(game:GetService("CoreGui"))
-if not climaGui and gethui then pcall(function() findNewGui(gethui()) end) end
-if not climaGui then
-    pcall(function() findNewGui(game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui", 5)) end)
-end
-
-if climaGui then
-    print("[Clima] Found Clima ScreenGui:", climaGui.Name, "| path:", climaGui:GetFullName())
-
-    local cyan      = Color3.fromRGB(0, 229, 255)
-    local cyanSoft  = Color3.fromRGB(180, 235, 255)
-    local blue      = Color3.fromRGB(30, 144, 255)
-    local strokeN, labelN = 0, 0
-
-    -- Recolor only strokes + text inside OUR ScreenGui
-    for _, obj in ipairs(climaGui:GetDescendants()) do
-        if obj:IsA("UIStroke") then
-            obj.Color = cyan
-            obj.Transparency = math.min(obj.Transparency, 0.2)
-            obj.Thickness = math.max(obj.Thickness, 1)
-            strokeN = strokeN + 1
-        elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
-            pcall(function()
-                obj.TextColor3 = cyanSoft
-            end)
-            labelN = labelN + 1
-        end
-    end
-
-    print("[Clima] Recolored", strokeN, "strokes and", labelN, "labels — Clima only")
-else
-    print("[Clima] !! Could not locate Clima ScreenGui — theme left default")
-end
-
--- ============================================================
---  TABS
--- ============================================================
-local MainTab     = Window:AddTab("Main", "bot")
 local SettingsTab = Window:AddTab("UI Settings", "settings")
+print("[Clima] Settings tab added")
 
 -- ============================================================
---  MAIN TAB
+--  4. MAIN TAB CONTENT
 -- ============================================================
-local MainLeft = MainTab:AddGroupbox({ Side = "Left", Name = "Main", IconName = "cog" })
-MainLeft:AddLabel("Clima Project — v1.1.0")
-MainLeft:AddLabel("All Rights Owned by Eclipse and Selena", true)
+local MainLeft = MainTab:AddGroupbox({
+    Side     = "Left",
+    Name     = "Main",
+    IconName = "cog",
+})
+print("[Clima] MainLeft groupbox added")
+
+MainLeft:AddLabel("Clima Project — v1.0.0")
+MainLeft:AddLabel("Owned by Eclipse and Selena", true)
 MainLeft:AddDivider()
 
 MainLeft:AddToggle("ExampleToggle", {
-    Text = "Example Toggle", Default = false,
-    Callback = function(v) print("[Clima] toggle:", v) end,
+    Text     = "Auto Egg",
+    Default  = false,
+    Tooltip  = "Auto get best eggs",
+    Callback = function(v) print("[Clima] ExampleToggle:", v) end,
 })
+
 MainLeft:AddSlider("ExampleSlider", {
-    Text = "Example Slider", Default = 50, Min = 0, Max = 100, Rounding = 0, Suffix = "%",
-    Callback = function(v) print("[Clima] slider:", v) end,
+    Text     = "Speed",
+    Default  = 50,
+    Min      = 0,
+    Max      = 100,
+    Rounding = 0,
+    Suffix   = "%",
+    Callback = function(v) print("[Clima] ExampleSlider:", v) end,
 })
+
 MainLeft:AddButton({
-    Text = "Example Button",
+    Text = "Claim all index",
     Func = function()
         Library:Notify({ Title = "Clima", Description = "Button clicked!", Time = 3 })
     end,
 })
+print("[Clima] MainLeft populated")
 
-local MainRight = MainTab:AddGroupbox({ Side = "Right", Name = "Info", IconName = "info" })
+local MainRight = MainTab:AddGroupbox({
+    Side     = "Right",
+    Name     = "Info",
+    IconName = "info",
+})
 MainRight:AddLabel("Clima Project")
-MainRight:AddLabel("All Rights Owned by Eclipse and Selena")
-MainRight:AddLabel("© 2026 — Do not redistribute")
+MainRight:AddLabel("Owned by Eclipse and Selena")
+MainRight:AddLabel("all rights reserved")
+print("[Clima] MainRight populated")
 
 -- ============================================================
---  UI SETTINGS TAB
+--  5. UI SETTINGS CONTENT
 -- ============================================================
-local MenuGroup = SettingsTab:AddGroupbox({ Side = "Left", Name = "Menu", IconName = "wrench" })
+local MenuGroup = SettingsTab:AddGroupbox({
+    Side     = "Left",
+    Name     = "Menu",
+    IconName = "wrench",
+})
+
 MenuGroup:AddToggle("AlwaysOnTop", {
-    Text = "Always On Top", Default = false,
+    Text     = "Always On Top",
+    Default  = false,
     Callback = function(v) Window:SetAlwaysOnTop(v) end,
 })
+
 MenuGroup:AddDropdown("NotificationSide", {
-    Values = { "Left", "Right" }, Default = "Right", Text = "Notification Side",
+    Values   = { "Left", "Right" },
+    Default  = "Right",
+    Text     = "Notification Side",
     Callback = function(v) Library:SetNotifySide(v) end,
 })
+
 MenuGroup:AddSlider("UICornerSlider", {
-    Text = "Corner Radius", Default = Library.CornerRadius or 6,
-    Min = 0, Max = 20, Rounding = 0,
+    Text     = "Corner Radius",
+    Default  = Library.CornerRadius or 6,
+    Min      = 0,
+    Max      = 20,
+    Rounding = 0,
     Callback = function(v) Window:SetCornerRadius(v) end,
 })
+
 MenuGroup:AddDivider()
 MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", {
-    Default = "RightControl", NoUI = true, Text = "Menu keybind",
+    Default = "RightControl",
+    NoUI    = true,
+    Text    = "Menu keybind",
 })
 Library.ToggleKeybind = Library.Options.MenuKeybind
-MenuGroup:AddButton({ Text = "Unload", Func = function() Library:Unload() end })
+print("[Clima] ToggleKeybind set to:", Library.ToggleKeybind)
+
+MenuGroup:AddButton({
+    Text = "Unload",
+    Func = function() Library:Unload() end,
+})
 
 -- ============================================================
---  💾 CONFIG GROUP
+--  6. 💙 APPLY BLUE/CYAN OUTLINE
+--  We find every UIStroke in the library's ScreenGui and
+--  recolor it. This bypasses Library.Scheme entirely — works
+--  even if the scheme key names differ between builds.
 -- ============================================================
-SaveManager:SetLibrary(Library)
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
-SaveManager:SetFolder("ClimaProject/configs")
-SaveManager:BuildConfigSection(SettingsTab)
-SaveManager:LoadAutoloadConfig()
-print("[Clima] Config group built")
+task.defer(function()
+    task.wait(0.1)
+
+    local cyan    = Color3.fromRGB(0, 229, 255)
+    local blue    = Color3.fromRGB(30, 144, 255)
+    local strokeCount = 0
+
+    -- Find the library's ScreenGui (Obsidian parents it to CoreGui or gethui)
+    local containers = {}
+    pcall(function() table.insert(containers, game:GetService("CoreGui")) end)
+    pcall(function() if gethui then table.insert(containers, gethui()) end end)
+    pcall(function() table.insert(containers, game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")) end)
+
+    for _, container in ipairs(containers) do
+        for _, obj in ipairs(container:GetDescendants()) do
+            if obj:IsA("UIStroke") then
+                -- Skip strokes inside buttons that would look weird, but
+                -- for now just recolor everything to cyan.
+                obj.Color = cyan
+                obj.Transparency = math.min(obj.Transparency, 0.2)
+                obj.Thickness = math.max(obj.Thickness, 1)
+                strokeCount = strokeCount + 1
+            end
+        end
+    end
+
+    print("[Clima] Recolored", strokeCount, "UIStrokes to cyan")
+
+    -- Also tint the accent color used by toggles/sliders if the key exists
+    pcall(function()
+        Library.Scheme.Accent = cyan
+        Library.Scheme.Outline = cyan
+        Library.Scheme.Toggle = cyan
+        Library.Scheme.Slider = cyan
+        if Library.UpdateColors then Library.UpdateColors() end
+    end)
+end)
 
 -- ============================================================
---  DONE
+--  7. WELCOME
 -- ============================================================
 Library:Notify({
-    Title = "Clima Project",
-    Description = "v1.1.0 loaded",
-    Time = 5,
+    Title       = "Steal an Egg",
+    Description = "v1.0.0 loaded",
+    Time        = 5,
 })
 
 print("[Clima] ===== DONE =====")
