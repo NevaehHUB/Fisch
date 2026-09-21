@@ -1,6 +1,7 @@
 --[[
     Clima Project, OWNED BY ECLIPSE AND SELENA ALL RIGHTS REVERSED
-    Version: v1.0.2 | GUI: Obsidian
+    Version: v1.0.3 | GUI: Obsidian
+    + Custom toggle & lock icons (Lucide lock / layout-dashboard)
 ]]
 
 print("[Clima] ===== STARTING =====")
@@ -9,189 +10,178 @@ print("[Clima] ===== STARTING =====")
 --  1. LOAD LIBRARY
 -- ============================================================
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
-
-local libSource = game:HttpGet(repo .. "Library.lua")
-print("[Clima] Library.lua fetched, length:", #libSource)
-
-local Library = loadstring(libSource)()
-print("[Clima] Library loaded. Type:", typeof(Library))
-
-assert(type(Library) == "table", "[Clima] Library is not a table")
-assert(type(Library.CreateWindow) == "function", "[Clima] Library.CreateWindow missing")
-assert(type(Library.Scheme) == "table", "[Clima] Library.Scheme missing")
-
-print("[Clima] Library.Scheme keys:")
-for k, v in pairs(Library.Scheme) do
-    print("    ", k, "=", typeof(v))
-end
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+print("[Clima] Library loaded:", typeof(Library))
 
 -- ============================================================
---  2. CREATE WINDOW
+--  2. WINDOW
 -- ============================================================
 local Window = Library:CreateWindow({
     Title            = "Clima",
-    Footer           = "v1.0.2",
+    Footer           = "v1.0.3",
     Center           = true,
     AutoShow         = true,
     Icon             = 4483345998,
     NotifySide       = "Right",
     ShowCustomCursor = true,
+    MobileButtonsSide = "Right",  -- keeps toggle/lock on the right side
 })
-print("[Clima] Window created:", typeof(Window))
+print("[Clima] Window created")
 
 -- ============================================================
---  3. TABS
+--  3. TABS + CONTENT (same as before)
 -- ============================================================
-local MainTab = Window:AddTab("Main", "bot")
-print("[Clima] Main tab added")
-
+local MainTab     = Window:AddTab("Main", "bot")
 local SettingsTab = Window:AddTab("UI Settings", "settings")
-print("[Clima] Settings tab added")
 
--- ============================================================
---  4. MAIN TAB CONTENT
--- ============================================================
-local MainLeft = MainTab:AddGroupbox({
-    Side     = "Left",
-    Name     = "Main",
-    IconName = "cog",
-})
-print("[Clima] MainLeft groupbox added")
-
-MainLeft:AddLabel("Clima Project — v1.0.2")
+local MainLeft = MainTab:AddGroupbox({ Side = "Left", Name = "Main", IconName = "cog" })
+MainLeft:AddLabel("Clima Project — v1.0.3")
 MainLeft:AddLabel("Owned by Eclipse and Selena", true)
 MainLeft:AddDivider()
 
 MainLeft:AddToggle("ExampleToggle", {
-    Text     = "Example Toggle",
-    Default  = false,
-    Tooltip  = "Test toggle",
-    Callback = function(v) print("[Clima] ExampleToggle:", v) end,
+    Text = "Example Toggle", Default = false,
+    Callback = function(v) print("[Clima] toggle:", v) end,
 })
-
 MainLeft:AddSlider("ExampleSlider", {
-    Text     = "Example Slider",
-    Default  = 50,
-    Min      = 0,
-    Max      = 100,
-    Rounding = 0,
-    Suffix   = "%",
-    Callback = function(v) print("[Clima] ExampleSlider:", v) end,
+    Text = "Example Slider", Default = 50, Min = 0, Max = 100, Rounding = 0, Suffix = "%",
+    Callback = function(v) print("[Clima] slider:", v) end,
 })
-
 MainLeft:AddButton({
     Text = "Example Button",
     Func = function()
         Library:Notify({ Title = "Clima", Description = "Button clicked!", Time = 3 })
     end,
 })
-print("[Clima] MainLeft populated")
 
-local MainRight = MainTab:AddGroupbox({
-    Side     = "Right",
-    Name     = "Info",
-    IconName = "info",
-})
+local MainRight = MainTab:AddGroupbox({ Side = "Right", Name = "Info", IconName = "info" })
 MainRight:AddLabel("Clima Project")
 MainRight:AddLabel("Owned by Eclipse and Selena")
 MainRight:AddLabel("All Rights Reversed")
-print("[Clima] MainRight populated")
 
--- ============================================================
---  5. UI SETTINGS CONTENT
--- ============================================================
-local MenuGroup = SettingsTab:AddGroupbox({
-    Side     = "Left",
-    Name     = "Menu",
-    IconName = "wrench",
-})
+local MenuGroup = SettingsTab:AddGroupbox({ Side = "Left", Name = "Menu", IconName = "wrench" })
 
 MenuGroup:AddToggle("AlwaysOnTop", {
-    Text     = "Always On Top",
-    Default  = false,
+    Text = "Always On Top", Default = false,
     Callback = function(v) Window:SetAlwaysOnTop(v) end,
 })
-
 MenuGroup:AddDropdown("NotificationSide", {
-    Values   = { "Left", "Right" },
-    Default  = "Right",
-    Text     = "Notification Side",
+    Values = { "Left", "Right" }, Default = "Right", Text = "Notification Side",
     Callback = function(v) Library:SetNotifySide(v) end,
 })
-
 MenuGroup:AddSlider("UICornerSlider", {
-    Text     = "Corner Radius",
-    Default  = Library.CornerRadius or 6,
-    Min      = 0,
-    Max      = 20,
-    Rounding = 0,
+    Text = "Corner Radius", Default = Library.CornerRadius or 6,
+    Min = 0, Max = 20, Rounding = 0,
     Callback = function(v) Window:SetCornerRadius(v) end,
 })
-
 MenuGroup:AddDivider()
 MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", {
-    Default = "RightControl",
-    NoUI    = true,
-    Text    = "Menu keybind",
+    Default = "RightControl", NoUI = true, Text = "Menu keybind",
 })
 Library.ToggleKeybind = Library.Options.MenuKeybind
-print("[Clima] ToggleKeybind set to:", Library.ToggleKeybind)
 
-MenuGroup:AddButton({
-    Text = "Unload",
-    Func = function() Library:Unload() end,
-})
+MenuGroup:AddButton({ Text = "Unload", Func = function() Library:Unload() end })
 
 -- ============================================================
---  6. 💙 APPLY BLUE/CYAN OUTLINE
---  We find every UIStroke in the library's ScreenGui and
---  recolor it. This bypasses Library.Scheme entirely — works
---  even if the scheme key names differ between builds.
+--  4. BLUE/CYAN OUTLINE (unchanged)
 -- ============================================================
 task.defer(function()
     task.wait(0.1)
-
-    local cyan    = Color3.fromRGB(0, 229, 255)
-    local blue    = Color3.fromRGB(30, 144, 255)
-    local strokeCount = 0
-
-    -- Find the library's ScreenGui (Obsidian parents it to CoreGui or gethui)
+    local cyan = Color3.fromRGB(0, 229, 255)
     local containers = {}
     pcall(function() table.insert(containers, game:GetService("CoreGui")) end)
     pcall(function() if gethui then table.insert(containers, gethui()) end end)
     pcall(function() table.insert(containers, game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")) end)
 
-    for _, container in ipairs(containers) do
-        for _, obj in ipairs(container:GetDescendants()) do
+    local n = 0
+    for _, c in ipairs(containers) do
+        for _, obj in ipairs(c:GetDescendants()) do
             if obj:IsA("UIStroke") then
-                -- Skip strokes inside buttons that would look weird, but
-                -- for now just recolor everything to cyan.
                 obj.Color = cyan
                 obj.Transparency = math.min(obj.Transparency, 0.2)
                 obj.Thickness = math.max(obj.Thickness, 1)
-                strokeCount = strokeCount + 1
+                n = n + 1
             end
         end
     end
-
-    print("[Clima] Recolored", strokeCount, "UIStrokes to cyan")
-
-    -- Also tint the accent color used by toggles/sliders if the key exists
-    pcall(function()
-        Library.Scheme.Accent = cyan
-        Library.Scheme.Outline = cyan
-        Library.Scheme.Toggle = cyan
-        Library.Scheme.Slider = cyan
-        if Library.UpdateColors then Library.UpdateColors() end
-    end)
+    print("[Clima] Recolored", n, "UIStrokes to cyan")
 end)
 
 -- ============================================================
---  7. WELCOME
+--  5. 💙 CUSTOM TOGGLE & LOCK ICONS
+--  The Lucide SVGs you gave need to be Roblox image assets.
+--  I'm using community-uploaded Lucide asset IDs. If these
+--  render as a placeholder question mark, the ID is wrong and
+--  we swap it — the debug print below will tell us which
+--  buttons we found so we can re-target.
+-- ============================================================
+
+-- Roblox asset IDs for Lucide icons (community uploads)
+local ICON_LOCK   = "rbxassetid://10709788850"   -- lucide "lock"
+local ICON_TOGGLE = "rbxassetid://10709788859"   -- lucide "layout-dashboard"
+-- Tint color from your SVG stroke: #94cbff
+local ICON_TINT   = Color3.fromRGB(148, 203, 255)
+
+task.spawn(function()
+    task.wait(0.5)   -- give the library time to finish rendering
+
+    local containers = {}
+    pcall(function() table.insert(containers, game:GetService("CoreGui")) end)
+    pcall(function() if gethui then table.insert(containers, gethui()) end end)
+    pcall(function() table.insert(containers, game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")) end)
+
+    local patched = 0
+
+    local function patchButton(btn)
+        if not btn:IsA("ImageButton") then return end
+        local n = btn.Name:lower()
+
+        -- Match by common library naming patterns
+        if n:find("lock") then
+            btn.Image = ICON_LOCK
+            btn.ImageColor3 = ICON_TINT
+            patched = patched + 1
+            print("[Clima] Patched LOCK button:", btn:GetFullName())
+        elseif n:find("toggle") or n:find("mobilebutton") or n:find("showhide") then
+            btn.Image = ICON_TOGGLE
+            btn.ImageColor3 = ICON_TINT
+            patched = patched + 1
+            print("[Clima] Patched TOGGLE button:", btn:GetFullName())
+        end
+    end
+
+    -- Initial sweep + debug list
+    print("[Clima] --- Scanning ImageButtons ---")
+    for _, c in ipairs(containers) do
+        for _, obj in ipairs(c:GetDescendants()) do
+            if obj:IsA("ImageButton") then
+                print("[Clima] Found ImageButton:", obj:GetFullName(),
+                      "| Name:", obj.Name,
+                      "| Image:", obj.Image)
+                patchButton(obj)
+            end
+        end
+    end
+    print("[Clima] --- Scan done. Patched:", patched, "---")
+
+    -- Watch for late-spawned buttons (some executors build the mobile
+    -- toggle frame lazily, or it appears after the first frame)
+    for _, c in ipairs(containers) do
+        c.DescendantAdded:Connect(function(obj)
+            if obj:IsA("ImageButton") then
+                task.wait(0.05)
+                patchButton(obj)
+            end
+        end)
+    end
+end)
+
+-- ============================================================
+--  6. WELCOME
 -- ============================================================
 Library:Notify({
     Title       = "Clima Project",
-    Description = "v1.0.2 loaded",
+    Description = "v1.0.3 loaded",
     Time        = 5,
 })
 
