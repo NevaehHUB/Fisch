@@ -1,7 +1,7 @@
--- Nevaeh Project, OWNED BY ECLIPSE AND SELENA ALL RIGHTS REVERSED 
+-- Clima Project, OWNED BY ECLIPSE AND SELENA ALL RIGHTS REVERSED 
 --]]
 
--- Window and visble function
+-- Window and visible function
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
@@ -19,15 +19,28 @@ Library.ForceCheckbox = false
 Library.ShowToggleFrameInKeybinds = true
 
 local Window = Library:CreateWindow({
-    Title = "Nevaeh",
+    Title = "Clima",
     Footer = "v1.0.2",
     ToggleKeybind = Enum.KeyCode.RightControl,
     Center = true,
     AutoShow = true,
     
-    Icon = "cog", -- <-- Using a built-in Lucide icon name instead
+    Icon = "cog",
     
     NotifySide = "Right",
     ShowCustomCursor = true,
 })
+
+-- Apply custom Pink / Cyan-Blue Theme
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+
+-- Custom colors: Primary Accent (Cyan/Blue) and Secondary Accent (Pink)
+Library:SetTheme({
+    Accent = Color3.fromRGB(0, 220, 255),       -- Bright Cyan/Blue outline & highlights
+    Outline = Color3.fromRGB(255, 105, 180),     -- Hot Pink outer border/outline
+    Back = Color3.fromRGB(15, 15, 20),
+    FontColor = Color3.fromRGB(240, 240, 240),
+})
+
 local MainTab = Window:AddTab("Main", "bot")
