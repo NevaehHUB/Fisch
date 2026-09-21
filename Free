@@ -1,7 +1,7 @@
 --[[
     Clima Project, ALL RIGHTS OWNED BY ECLIPSE AND SELENA
-    Version: v1.0.9 | GUI: Obsidian
-    Scoped blue theme (only touches Clima UI, never game UI)
+    Version: v1.1.0 | GUI: Obsidian
+    Blue theme scoped ONLY to Clima — never touches game UI
 ]]
 
 print("[Clima] ===== STARTING =====")
@@ -12,49 +12,37 @@ local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 print("[Clima] Library loaded:", typeof(Library))
 
 -- ============================================================
---  💙 BLUE THEME — set BEFORE CreateWindow so the library
---  paints itself blue from the start. Never touches game UI.
+--  SNAPSHOT existing ScreenGuis BEFORE creating our window
+--  So we can find OUR ScreenGui afterward by process of
+--  elimination. This is how we avoid touching game UI.
 -- ============================================================
+local before = {}
+
+local function snapshotContainer(container)
+    if not container then return end
+    local ok, list = pcall(function() return container:GetChildren() end)
+    if not ok or not list then return end
+    for _, sg in ipairs(list) do
+        if sg:IsA("ScreenGui") then
+            before[sg] = true
+        end
+    end
+end
+
+snapshotContainer(game:GetService("CoreGui"))
+if gethui then pcall(function() snapshotContainer(gethui()) end) end
 pcall(function()
-    local S = Library.Scheme
-    if not S then return end
-
-    local CYAN      = Color3.fromRGB(  0, 229, 255)  -- borders / accents
-    local CYAN_SOFT = Color3.fromRGB(180, 235, 255)  -- text
-    local BLUE      = Color3.fromRGB( 30, 144, 255)  -- button fills
-    local BLUE_DARK = Color3.fromRGB( 20,  70, 130)  -- tab backgrounds
-    local BG_DARK   = Color3.fromRGB( 10,  18,  30)  -- main background
-    local BG_MID    = Color3.fromRGB( 18,  32,  50)  -- panel background
-
-    S.Main           = BG_DARK
-    S.Background     = BG_MID
-    S.Popup          = BG_MID
-    S.Outline        = CYAN
-    S.FontColor      = CYAN_SOFT
-    S.Button         = BLUE
-    S.ButtonBorder   = CYAN
-    S.Accent         = CYAN
-    S.Toggle         = CYAN
-    S.ToggleBorder   = CYAN
-    S.Slider         = CYAN
-    S.SliderBorder   = BLUE
-    S.Dropdown       = BG_MID
-    S.DropdownBorder = CYAN
-    S.Tab            = BG_DARK
-    S.TabBorder      = BLUE_DARK
-    S.Textbox        = BG_DARK
-    S.Placeholder    = Color3.fromRGB(120, 180, 210)
-    S.Red            = Color3.fromRGB(255,  90, 110)
-    S.Green          = Color3.fromRGB(120, 240, 180)
+    snapshotContainer(game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui", 5))
 end)
-print("[Clima] Blue theme applied to Scheme")
+
+print("[Clima] Snapshotted", (function() local n = 0 for _ in pairs(before) do n = n + 1 end return n end)(), "existing ScreenGuis")
 
 -- ============================================================
---  WINDOW
+--  WINDOW — default theme, library paints itself normally
 -- ============================================================
 local Window = Library:CreateWindow({
     Title             = "Clima",
-    Footer            = "v1.0.9",
+    Footer            = "v1.1.0",
     Center            = true,
     AutoShow          = true,
     Icon              = 4483345998,
@@ -63,6 +51,58 @@ local Window = Library:CreateWindow({
     MobileButtonsSide = "Right",
 })
 print("[Clima] Window created")
+
+-- ============================================================
+--  FIND our newly-created ScreenGui and recolor ONLY its
+--  UIStrokes. No game UI is ever touched.
+-- ============================================================
+local climaGui = nil
+
+local function findNewGui(container)
+    if climaGui or not container then return end
+    local ok, list = pcall(function() return container:GetChildren() end)
+    if not ok or not list then return end
+    for _, sg in ipairs(list) do
+        if sg:IsA("ScreenGui") and not before[sg] then
+            climaGui = sg
+            return
+        end
+    end
+end
+
+findNewGui(game:GetService("CoreGui"))
+if not climaGui and gethui then pcall(function() findNewGui(gethui()) end) end
+if not climaGui then
+    pcall(function() findNewGui(game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui", 5)) end)
+end
+
+if climaGui then
+    print("[Clima] Found Clima ScreenGui:", climaGui.Name, "| path:", climaGui:GetFullName())
+
+    local cyan      = Color3.fromRGB(0, 229, 255)
+    local cyanSoft  = Color3.fromRGB(180, 235, 255)
+    local blue      = Color3.fromRGB(30, 144, 255)
+    local strokeN, labelN = 0, 0
+
+    -- Recolor only strokes + text inside OUR ScreenGui
+    for _, obj in ipairs(climaGui:GetDescendants()) do
+        if obj:IsA("UIStroke") then
+            obj.Color = cyan
+            obj.Transparency = math.min(obj.Transparency, 0.2)
+            obj.Thickness = math.max(obj.Thickness, 1)
+            strokeN = strokeN + 1
+        elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+            pcall(function()
+                obj.TextColor3 = cyanSoft
+            end)
+            labelN = labelN + 1
+        end
+    end
+
+    print("[Clima] Recolored", strokeN, "strokes and", labelN, "labels — Clima only")
+else
+    print("[Clima] !! Could not locate Clima ScreenGui — theme left default")
+end
 
 -- ============================================================
 --  TABS
@@ -74,7 +114,7 @@ local SettingsTab = Window:AddTab("UI Settings", "settings")
 --  MAIN TAB
 -- ============================================================
 local MainLeft = MainTab:AddGroupbox({ Side = "Left", Name = "Main", IconName = "cog" })
-MainLeft:AddLabel("Clima Project — v1.0.9")
+MainLeft:AddLabel("Clima Project — v1.1.0")
 MainLeft:AddLabel("All Rights Owned by Eclipse and Selena", true)
 MainLeft:AddDivider()
 
@@ -124,8 +164,6 @@ MenuGroup:AddButton({ Text = "Unload", Func = function() Library:Unload() end })
 
 -- ============================================================
 --  💾 CONFIG GROUP
---  User can save / load / delete named configs from the
---  "Configs" groupbox on the UI Settings tab.
 -- ============================================================
 SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings()
@@ -140,7 +178,7 @@ print("[Clima] Config group built")
 -- ============================================================
 Library:Notify({
     Title = "Clima Project",
-    Description = "v1.0.9 loaded",
+    Description = "v1.1.0 loaded",
     Time = 5,
 })
 
