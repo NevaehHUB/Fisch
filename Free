@@ -1,26 +1,26 @@
 --[[
     Clima Project, OWNED BY ECLIPSE AND SELENA ALL RIGHTS REVERSED
     GUI: Obsidian by deividcomsono
-    Theme: Blue / Cyan outline forced
-    Version: v1.0.2
+    Theme: Blue/Cyan outline (safe override)
+    Version: v1.0.2-fixed
 ]]
 
 -- ============================================================
 --  LIBRARY LOADER
 -- ============================================================
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
-local Library     = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local Library      = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 local SaveManager  = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 
+print("[Clima] Library loaded")
+
 -- ============================================================
---  SERVICES / REFS
+--  SERVICES
 -- ============================================================
-local TweenService   = game:GetService("TweenService")
-local Players        = game:GetService("Players")
-local RunService     = game:GetService("RunService")
+local Players          = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local LocalPlayer    = Players.LocalPlayer
+local LocalPlayer      = Players.LocalPlayer
 
 local Options = Library.Options
 local Toggles = Library.Toggles
@@ -29,29 +29,43 @@ Library.ForceCheckbox = false
 Library.ShowToggleFrameInKeybinds = true
 
 -- ============================================================
---  💙 BLUE / CYAN THEME — FORCED
---  Overrides the outline + accent + related colors so the whole
---  UI has a blue/cyan glow. Wrapped in pcall so a missing
---  Scheme key can't crash the script.
+--  WINDOW
+-- ============================================================
+local Window = Library:CreateWindow({
+    Title            = "Clima",
+    Footer           = "v1.0.2",
+    Center           = true,
+    AutoShow         = true,
+    Icon             = 4483345998,
+    NotifySide       = "Right",
+    ShowCustomCursor = true,
+})
+
+-- Force-show in case AutoShow ever fails
+pcall(function() Window:Show() end)
+
+print("[Clima] Window created")
+
+-- ============================================================
+--  💙 BLUE / CYAN THEME (applied AFTER window creation — safest)
+--  Wrapped in pcall so a missing Scheme key can never crash.
 -- ============================================================
 local function applyBlueCyanTheme()
     pcall(function()
         local S = Library.Scheme
         if not S then return end
 
-        local CYAN        = Color3.fromRGB(  0, 229, 255)  -- bright cyan (accent)
-        local CYAN_SOFT   = Color3.fromRGB(130, 240, 255)  -- soft cyan (font)
-        local BLUE        = Color3.fromRGB( 30, 144, 255)  -- dodger blue
-        local BLUE_DARK   = Color3.fromRGB( 10,  60, 130)  -- deep blue (borders)
-        local BG_DARK     = Color3.fromRGB(  8,  16,  28)  -- dark blue-black
-        local BG_MID      = Color3.fromRGB( 14,  26,  44)
+        local CYAN      = Color3.fromRGB(  0, 229, 255)
+        local CYAN_SOFT = Color3.fromRGB(130, 240, 255)
+        local BLUE      = Color3.fromRGB( 30, 144, 255)
+        local BLUE_DARK = Color3.fromRGB( 10,  60, 130)
+        local BG_DARK   = Color3.fromRGB(  8,  16,  28)
+        local BG_MID    = Color3.fromRGB( 14,  26,  44)
 
-        -- Backgrounds
         S.Main            = BG_DARK
         S.Background      = BG_MID
         S.Popup           = BG_MID
 
-        -- Outlines / borders — this is the "blue/cyan outline"
         S.Outline         = CYAN
         S.ButtonBorder    = CYAN
         S.ToggleBorder    = CYAN
@@ -59,54 +73,25 @@ local function applyBlueCyanTheme()
         S.DropdownBorder  = CYAN
         S.TabBorder       = BLUE_DARK
 
-        -- Accent (used by toggles, sliders, selected tabs)
         S.Accent          = CYAN
-
-        -- Buttons
         S.Button          = BLUE
-
-        -- Toggles / sliders
         S.Toggle          = CYAN
         S.Slider          = CYAN
-
-        -- Dropdowns / tabs
         S.Dropdown        = BG_MID
         S.Tab             = BG_DARK
 
-        -- Text
         S.FontColor       = CYAN_SOFT
         S.Placeholder     = Color3.fromRGB(120, 180, 210)
-
-        -- Status colors (keep readable)
         S.Red             = Color3.fromRGB(255,  90, 110)
         S.Green           = Color3.fromRGB(120, 240, 180)
 
-        -- Force a UI refresh if the library exposes one
         if Library.UpdateColors  then pcall(Library.UpdateColors)  end
         if Library.RefreshColors then pcall(Library.RefreshColors) end
     end)
 end
-
 applyBlueCyanTheme()
 
--- ============================================================
---  WINDOW
--- ============================================================
-local Window = Library:CreateWindow({
-    Title       = "Clima",
-    Footer      = "v1.0.2",
-    Center      = true,
-    AutoShow    = true,
-    Icon        = 4483345998,          -- numeric Roblox asset ID (Obsidian wants a number)
-    NotifySide  = "Right",
-    ShowCustomCursor = true,
-})
-
--- Re-apply after window creation (CreateWindow can reset scheme colors)
-applyBlueCyanTheme()
-
--- Menu toggle keybind (this is the correct way, not inside CreateWindow)
-Library.ToggleKeybind = Enum.KeyCode.RightControl
+print("[Clima] Theme applied")
 
 -- ============================================================
 --  TABS
@@ -120,18 +105,16 @@ local Tabs = {
 --  MAIN TAB
 -- ============================================================
 local MainLeft = Tabs.Main:AddGroupbox({
-    Side = "Left",
-    Name = "Main",
+    Side     = "Left",
+    Name     = "Main",
     IconName = "cog",
 })
 
 MainLeft:AddLabel("Clima Project — v1.0.2\nOwned by Eclipse and Selena.")
-
 MainLeft:AddDivider()
 
--- Example toggle so you can see the cyan/blue theme in action
 MainLeft:AddToggle("ExampleToggle", {
-    Text = "Example Toggle",
+    Text    = "Example Toggle",
     Default = false,
     Tooltip = "Shows the cyan accent + outline.",
     Callback = function(v)
@@ -140,8 +123,12 @@ MainLeft:AddToggle("ExampleToggle", {
 })
 
 MainLeft:AddSlider("ExampleSlider", {
-    Text = "Example Slider",
-    Default = 50, Min = 0, Max = 100, Rounding = 0, Suffix = "%",
+    Text     = "Example Slider",
+    Default  = 50,
+    Min      = 0,
+    Max      = 100,
+    Rounding = 0,
+    Suffix   = "%",
     Callback = function(v)
         print("[Clima] ExampleSlider:", v)
     end,
@@ -150,17 +137,13 @@ MainLeft:AddSlider("ExampleSlider", {
 MainLeft:AddButton({
     Text = "Example Button",
     Func = function()
-        Library:Notify({
-            Title = "Clima",
-            Description = "Button clicked!",
-            Time = 3,
-        })
+        Library:Notify({ Title = "Clima", Description = "Button clicked!", Time = 3 })
     end,
 })
 
 local MainRight = Tabs.Main:AddGroupbox({
-    Side = "Right",
-    Name = "Info",
+    Side     = "Right",
+    Name     = "Info",
     IconName = "info",
 })
 
@@ -170,15 +153,15 @@ MainRight:AddLabel("Clima Project\nOwned by Eclipse and Selena\nAll Rights Rever
 --  UI SETTINGS TAB
 -- ============================================================
 local MenuGroup = Tabs.Settings:AddGroupbox({
-    Side = "Left",
-    Name = "Menu",
+    Side     = "Left",
+    Name     = "Menu",
     IconName = "wrench",
 })
 
 pcall(function()
     MenuGroup:AddToggle("KeybindMenuOpen", {
         Default = Library.KeybindFrame and Library.KeybindFrame.Visible or false,
-        Text = "Open Keybind Menu",
+        Text    = "Open Keybind Menu",
         Callback = function(v)
             if Library.KeybindFrame then Library.KeybindFrame.Visible = v end
         end,
@@ -186,28 +169,28 @@ pcall(function()
 end)
 
 MenuGroup:AddToggle("ShowCustomCursor", {
-    Text = "Custom Cursor",
+    Text    = "Custom Cursor",
     Default = Library.ShowCustomCursor or true,
     Callback = function(v) Library.ShowCustomCursor = v end,
 })
 
 MenuGroup:AddToggle("AlwaysOnTop", {
-    Text = "Always On Top",
+    Text    = "Always On Top",
     Default = Window.AlwaysOnTop or false,
     Callback = function(v) Window:SetAlwaysOnTop(v) end,
 })
 
 MenuGroup:AddDropdown("NotificationSide", {
-    Values = { "Left", "Right" },
-    Default = "Right",
-    Text = "Notification Side",
+    Values   = { "Left", "Right" },
+    Default  = "Right",
+    Text     = "Notification Side",
     Callback = function(v) Library:SetNotifySide(v) end,
 })
 
 MenuGroup:AddDropdown("DPIDropdown", {
-    Values = { "50%", "75%", "100%", "125%", "150%", "175%", "200%" },
-    Default = "100%",
-    Text = "DPI Scale",
+    Values   = { "50%", "75%", "100%", "125%", "150%", "175%", "200%" },
+    Default  = "100%",
+    Text     = "DPI Scale",
     Callback = function(v)
         v = v:gsub("%%", "")
         Library:SetDPIScale(tonumber(v))
@@ -215,9 +198,11 @@ MenuGroup:AddDropdown("DPIDropdown", {
 })
 
 MenuGroup:AddSlider("UICornerSlider", {
-    Text = "Corner Radius",
-    Default = Library.CornerRadius or 6,
-    Min = 0, Max = 20, Rounding = 0,
+    Text     = "Corner Radius",
+    Default  = Library.CornerRadius or 6,
+    Min      = 0,
+    Max      = 20,
+    Rounding = 0,
     Callback = function(v) Window:SetCornerRadius(v) end,
 })
 
@@ -230,12 +215,13 @@ MenuGroup:AddButton({
 })
 
 MenuGroup:AddDivider()
+
+-- Menu keybind — set ONLY as a KeyPicker, never as a raw Enum
 MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", {
     Default = "RightControl",
-    NoUI = true,
-    Text = "Menu keybind",
+    NoUI    = true,
+    Text    = "Menu keybind",
 })
-
 Library.ToggleKeybind = Options.MenuKeybind
 
 MenuGroup:AddButton({
@@ -246,23 +232,25 @@ MenuGroup:AddButton({
 -- ============================================================
 --  ADDONS
 -- ============================================================
-ThemeManager:SetLibrary(Library)
-SaveManager:SetLibrary(Library)
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
-ThemeManager:SetFolder("ClimaProject")
-SaveManager:SetFolder("ClimaProject/configs")
-SaveManager:BuildConfigSection(Tabs.Settings)
--- NOTE: We do NOT call ThemeManager:ApplyToTab here, because that would let
--- the user override the forced blue/cyan theme. Uncomment if you want themes back:
--- ThemeManager:ApplyToTab(Tabs.Settings)
-SaveManager:LoadAutoloadConfig()
+pcall(function()
+    ThemeManager:SetLibrary(Library)
+    SaveManager:SetLibrary(Library)
+    SaveManager:IgnoreThemeSettings()
+    SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+    ThemeManager:SetFolder("ClimaProject")
+    SaveManager:SetFolder("ClimaProject/configs")
+    SaveManager:BuildConfigSection(Tabs.Settings)
+    -- ThemeManager:ApplyToTab(Tabs.Settings)  -- uncomment to allow theme picker
+    SaveManager:LoadAutoloadConfig()
+end)
+
+print("[Clima] Addons setup complete")
 
 -- ============================================================
---  WELCOME
+--  WELCOME NOTIFY
 -- ============================================================
 Library:Notify({
-    Title = "Clima Project",
+    Title       = "Clima Project",
     Description = "v1.0.2 loaded. Blue/Cyan theme active.",
-    Time = 5,
+    Time        = 5,
 })
