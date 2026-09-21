@@ -1,24 +1,17 @@
 --[[
-    Clima Project, OWNED BY ECLIPSE AND SELENA ALL RIGHTS REVERSED
-    Version: v1.0.4 | GUI: Obsidian
-    Features: Blue/Cyan theme, custom drawn lock & toggle icons
+    Clima Project, ALL RIGHTS OWNED BY ECLIPSE AND SELENA
+    Version: v1.0.6 | GUI: Obsidian
 ]]
 
 print("[Clima] ===== STARTING =====")
 
--- ============================================================
---  1. LOAD LIBRARY
--- ============================================================
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 print("[Clima] Library loaded:", typeof(Library))
 
--- ============================================================
---  2. WINDOW
--- ============================================================
 local Window = Library:CreateWindow({
     Title             = "Clima",
-    Footer            = "v1.0.4",
+    Footer            = "v1.0.6",
     Center            = true,
     AutoShow          = true,
     Icon              = 4483345998,
@@ -28,17 +21,13 @@ local Window = Library:CreateWindow({
 })
 print("[Clima] Window created")
 
--- ============================================================
---  3. TABS + CONTENT
--- ============================================================
 local MainTab     = Window:AddTab("Main", "bot")
 local SettingsTab = Window:AddTab("UI Settings", "settings")
 
 local MainLeft = MainTab:AddGroupbox({ Side = "Left", Name = "Main", IconName = "cog" })
-MainLeft:AddLabel("Clima Project — v1.0.4")
-MainLeft:AddLabel("Owned by Eclipse and Selena", true)
+MainLeft:AddLabel("Clima Project — v1.0.6")
+MainLeft:AddLabel("All Rights Owned by Eclipse and Selena", true)
 MainLeft:AddDivider()
-
 MainLeft:AddToggle("ExampleToggle", {
     Text = "Example Toggle", Default = false,
     Callback = function(v) print("[Clima] toggle:", v) end,
@@ -56,11 +45,10 @@ MainLeft:AddButton({
 
 local MainRight = MainTab:AddGroupbox({ Side = "Right", Name = "Info", IconName = "info" })
 MainRight:AddLabel("Clima Project")
-MainRight:AddLabel("Owned by Eclipse and Selena")
-MainRight:AddLabel("All Rights Reversed")
+MainRight:AddLabel("All Rights Owned by Eclipse and Selena")
+MainRight:AddLabel("© 2026 — Do not redistribute")
 
 local MenuGroup = SettingsTab:AddGroupbox({ Side = "Left", Name = "Menu", IconName = "wrench" })
-
 MenuGroup:AddToggle("AlwaysOnTop", {
     Text = "Always On Top", Default = false,
     Callback = function(v) Window:SetAlwaysOnTop(v) end,
@@ -79,11 +67,10 @@ MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", {
     Default = "RightControl", NoUI = true, Text = "Menu keybind",
 })
 Library.ToggleKeybind = Library.Options.MenuKeybind
-
 MenuGroup:AddButton({ Text = "Unload", Func = function() Library:Unload() end })
 
 -- ============================================================
---  4. 💙 BLUE/CYAN OUTLINE THEME
+--  BLUE/CYAN OUTLINE
 -- ============================================================
 task.defer(function()
     task.wait(0.1)
@@ -92,7 +79,6 @@ task.defer(function()
     pcall(function() table.insert(containers, game:GetService("CoreGui")) end)
     pcall(function() if gethui then table.insert(containers, gethui()) end end)
     pcall(function() table.insert(containers, game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")) end)
-
     local n = 0
     for _, c in ipairs(containers) do
         for _, obj in ipairs(c:GetDescendants()) do
@@ -108,84 +94,89 @@ task.defer(function()
 end)
 
 -- ============================================================
---  5. 💙 CUSTOM LOCK + TOGGLE ICONS (drawn with primitives)
+--  AGGRESSIVE LOCK/TOGGLE PATCHER
 -- ============================================================
-local ICON_COLOR = Color3.fromRGB(148, 203, 255)  -- #94cbff
+local ICON_COLOR = Color3.fromRGB(148, 203, 255)
 
-local function iconSizeOf(parent)
-    local s = parent.AbsoluteSize.X
+local function buttonSize(btn)
+    local s = btn.AbsoluteSize.X
     if not s or s <= 0 then s = 24 end
     return s
 end
+local function thickOf(btn) return math.max(1.5, buttonSize(btn) * (2 / 24)) end
+local function cornerOf(btn, r) return math.max(2, buttonSize(btn) * (r / 24)) end
 
-local function iconThickOf(parent)
-    return math.max(1.5, iconSizeOf(parent) * (2 / 24))
-end
-
-local function iconCornerOf(parent, svgR)
-    return math.max(2, iconSizeOf(parent) * (svgR / 24))
-end
-
-local function clearClimaIcon(parent)
-    for _, c in ipairs(parent:GetChildren()) do
-        if c.Name == "ClimaIcon" then c:Destroy() end
+local function nukeExistingIcon(btn)
+    pcall(function() btn.Image = "" end)
+    pcall(function() btn.ImageTransparency = 1 end)
+    pcall(function() btn.BackgroundTransparency = 1 end)
+    pcall(function() btn.ClipsDescendants = false end)
+    pcall(function() btn.AutoButtonColor = false end)
+    for _, c in ipairs(btn:GetDescendants()) do
+        if c ~= btn then
+            if c:IsA("ImageLabel") or c:IsA("ImageButton") then
+                pcall(function() c.Image = "" end)
+                pcall(function() c.ImageTransparency = 1 end)
+                pcall(function() c.Visible = false end)
+            elseif c:IsA("TextLabel") or c:IsA("TextButton") then
+                pcall(function() c.TextTransparency = 1 end)
+                pcall(function() c.Visible = false end)
+            elseif c:IsA("Frame") and c.Name == "ClimaIcon" then
+                c:Destroy()
+            end
+        end
     end
 end
 
--- Lock keyhole (closed / open)
-local function drawLockKeyhole(parent, isOpen)
-    clearClimaIcon(parent)
-    local THICK = iconThickOf(parent)
+local function drawLock(btn, isOpen)
+    nukeExistingIcon(btn)
+    local THICK = thickOf(btn)
 
     local icon = Instance.new("Frame")
     icon.Name = "ClimaIcon"
     icon.BackgroundTransparency = 1
     icon.Size = UDim2.fromScale(1, 1)
-    icon.ZIndex = 5
-    icon.Parent = parent
+    icon.ZIndex = 1000
+    icon.Parent = btn
 
-    -- Body (rounded rect outline)
     local body = Instance.new("Frame")
     body.BackgroundTransparency = 1
     body.Position = UDim2.fromScale(3/24, 10/24)
     body.Size     = UDim2.fromScale(18/24, 12/24)
-    body.ZIndex   = 6
+    body.ZIndex   = 1001
     body.Parent   = icon
     local bc = Instance.new("UICorner")
-    bc.CornerRadius = UDim.new(0, iconCornerOf(parent, 2))
+    bc.CornerRadius = UDim.new(0, cornerOf(btn, 2))
     bc.Parent = body
     local bs = Instance.new("UIStroke")
     bs.Color = ICON_COLOR
     bs.Thickness = THICK
     bs.Parent = body
 
-    -- Keyhole dot
     local dot = Instance.new("Frame")
     dot.BackgroundColor3 = ICON_COLOR
     dot.BorderSizePixel = 0
     dot.Position = UDim2.fromScale(11/24, 15/24)
     dot.Size     = UDim2.fromScale(2/24, 2/24)
-    dot.ZIndex   = 7
+    dot.ZIndex   = 1002
     dot.Parent   = icon
     local dc = Instance.new("UICorner")
     dc.CornerRadius = UDim.new(1, 0)
     dc.Parent = dot
 
-    -- Shackle arc (top-half circle, clipped)
     local clipW = isOpen and (9/24) or (10/24)
     local clip = Instance.new("Frame")
     clip.BackgroundTransparency = 1
     clip.Position = UDim2.fromScale(7/24, 2/24)
     clip.Size     = UDim2.fromScale(clipW, 5/24)
     clip.ClipsDescendants = true
-    clip.ZIndex = 6
+    clip.ZIndex = 1001
     clip.Parent = icon
 
     local arc = Instance.new("Frame")
     arc.BackgroundTransparency = 1
-    arc.Position = UDim2.new(0, 0, 0, 0)
     arc.Size = UDim2.new((10/24) / clipW, 0, 2, 0)
-    arc.ZIndex = 7
+    arc.ZIndex = 1002
     arc.Parent = clip
     local ac = Instance.new("UICorner")
     ac.CornerRadius = UDim.new(1, 0)
@@ -195,43 +186,39 @@ local function drawLockKeyhole(parent, isOpen)
     as_.Thickness = THICK
     as_.Parent = arc
 
-    -- Vertical drops (y=7 → y=10)
     local function vline(x)
         local l = Instance.new("Frame")
         l.BackgroundColor3 = ICON_COLOR
         l.BorderSizePixel = 0
         l.Position = UDim2.new(x, -THICK/2, 7/24, 0)
         l.Size     = UDim2.new(0, THICK, 3/24, 0)
-        l.ZIndex   = 7
+        l.ZIndex   = 1002
         l.Parent   = icon
     end
     vline(7/24)
-    if not isOpen then
-        vline(17/24)
-    end
+    if not isOpen then vline(17/24) end
 end
 
--- Layout dashboard (4 outlined rects)
-local function drawLayoutDashboard(parent)
-    clearClimaIcon(parent)
-    local THICK = iconThickOf(parent)
+local function drawDashboard(btn)
+    nukeExistingIcon(btn)
+    local THICK = thickOf(btn)
 
     local icon = Instance.new("Frame")
     icon.Name = "ClimaIcon"
     icon.BackgroundTransparency = 1
     icon.Size = UDim2.fromScale(1, 1)
-    icon.ZIndex = 5
-    icon.Parent = parent
+    icon.ZIndex = 1000
+    icon.Parent = btn
 
     local function box(x, y, w, h, r)
         local f = Instance.new("Frame")
         f.BackgroundTransparency = 1
         f.Position = UDim2.fromScale(x, y)
         f.Size     = UDim2.fromScale(w, h)
-        f.ZIndex   = 6
+        f.ZIndex   = 1001
         f.Parent   = icon
         local c = Instance.new("UICorner")
-        c.CornerRadius = UDim.new(0, iconCornerOf(parent, r))
+        c.CornerRadius = UDim.new(0, cornerOf(btn, r))
         c.Parent = f
         local s = Instance.new("UIStroke")
         s.Color = ICON_COLOR
@@ -245,9 +232,8 @@ local function drawLayoutDashboard(parent)
     box( 3/24, 16/24, 7/24, 5/24, 1)
 end
 
--- Patch buttons
 task.spawn(function()
-    task.wait(0.5)
+    task.wait(1.5)
 
     local containers = {}
     pcall(function() table.insert(containers, game:GetService("CoreGui")) end)
@@ -259,17 +245,24 @@ task.spawn(function()
 
     local function patchLock()
         if not lockBtn then return end
-        lockBtn.Image = ""
-        lockBtn.ImageTransparency = 1
-        drawLockKeyhole(lockBtn, lockOpen)
+        drawLock(lockBtn, lockOpen)
     end
-
     local function patchToggle()
         if not toggleBtn then return end
-        toggleBtn.Image = ""
-        toggleBtn.ImageTransparency = 1
-        drawLayoutDashboard(toggleBtn)
+        drawDashboard(toggleBtn)
     end
+
+    print("[Clima] --- IMAGEBUTTON SCAN ---")
+    local allBtns = {}
+    for _, c in ipairs(containers) do
+        for _, obj in ipairs(c:GetDescendants()) do
+            if obj:IsA("ImageButton") then
+                table.insert(allBtns, obj)
+                print("[Clima]  found:", obj.Name, "| size:", obj.AbsoluteSize, "| path:", obj:GetFullName())
+            end
+        end
+    end
+    print("[Clima] --- SCAN DONE, total:", #allBtns, "---")
 
     local function tryMatch(obj)
         if not obj:IsA("ImageButton") then return end
@@ -279,42 +272,56 @@ task.spawn(function()
             patchLock()
             lockBtn.MouseButton1Click:Connect(function()
                 lockOpen = not lockOpen
-                drawLockKeyhole(lockBtn, lockOpen)
+                drawLock(lockBtn, lockOpen)
             end)
-            print("[Clima] Lock button patched:", lockBtn:GetFullName())
+            print("[Clima] LOCK patched:", lockBtn:GetFullName())
         end
         if not toggleBtn and (n:find("toggle") or n:find("showhide")
-            or n:find("mobilebutton") or n:find("menu")) then
+            or n:find("mobilebutton") or n:find("menu") or n:find("mobile")) then
             toggleBtn = obj
             patchToggle()
-            print("[Clima] Toggle button patched:", toggleBtn:GetFullName())
+            print("[Clima] TOGGLE patched:", toggleBtn:GetFullName())
         end
     end
 
-    for _, c in ipairs(containers) do
-        for _, obj in ipairs(c:GetDescendants()) do
-            tryMatch(obj)
+    for _, b in ipairs(allBtns) do tryMatch(b) end
+
+    if not lockBtn or not toggleBtn then
+        print("[Clima] Name match failed, guessing by size...")
+        for _, b in ipairs(allBtns) do
+            if b.AbsoluteSize.X > 0 and b.AbsoluteSize.X <= 45 then
+                if not toggleBtn and b ~= lockBtn then
+                    toggleBtn = b
+                    patchToggle()
+                    print("[Clima] GUESSED toggle:", b:GetFullName())
+                elseif not lockBtn then
+                    lockBtn = b
+                    patchLock()
+                    lockBtn.MouseButton1Click:Connect(function()
+                        lockOpen = not lockOpen
+                        drawLock(lockBtn, lockOpen)
+                    end)
+                    print("[Clima] GUESSED lock:", b:GetFullName())
+                end
+            end
         end
     end
 
     for _, c in ipairs(containers) do
         c.DescendantAdded:Connect(function(obj)
-            task.wait(0.05)
+            task.wait(0.1)
             tryMatch(obj)
         end)
     end
 
-    if not lockBtn   then print("[Clima] Lock button NOT FOUND")   end
-    if not toggleBtn then print("[Clima] Toggle button NOT FOUND") end
+    if not lockBtn   then print("[Clima] !! LOCK BUTTON NOT FOUND !!")   end
+    if not toggleBtn then print("[Clima] !! TOGGLE BUTTON NOT FOUND !!") end
 end)
 
--- ============================================================
---  6. WELCOME
--- ============================================================
 Library:Notify({
-    Title       = "Clima Project",
-    Description = "v1.0.4 loaded",
-    Time        = 5,
+    Title = "Clima Project",
+    Description = "v1.0.6 loaded — All Rights Owned by Eclipse and Selena",
+    Time = 5,
 })
 
 print("[Clima] ===== DONE =====")
