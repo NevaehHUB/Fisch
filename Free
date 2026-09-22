@@ -1,38 +1,71 @@
--- Destroy previous instance if it exists to avoid overlaps
+-- Destroy previous instance if it exists
 if game.CoreGui:FindFirstChild("ClimaCustomGUI") then
     game.CoreGui.ClimaCustomGUI:Destroy()
 end
 
-local Player = game:GetService("Players").LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 local CoreGui = game:GetService("CoreGui")
+
+local Camera = Workspace.CurrentCamera
+local ViewportSize = Camera.ViewportSize or Vector2.new(800, 600)
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "ClimaCustomGUI"
 gui.Parent = CoreGui
 gui.ResetOnSpawn = false
 
--- Global Theme Colors
+-- Theme Colors (Blue Outline & Dark Background)
 local BackgroundColor = Color3.fromRGB(22, 22, 22)
-local OutlineBlue = Color3.fromRGB(0, 170, 255) -- Vibrant Cyan/Blue outline
+local OutlineBlue = Color3.fromRGB(0, 170, 255)
 local TextWhite = Color3.fromRGB(220, 220, 220)
 
 -- ==========================================
--- MAIN WINDOW
+-- FLOATING MOBILE TOGGLE BUTTON
 -- ==========================================
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "ClimaToggle"
+toggleBtn.Size = UDim2.new(0, 55, 0, 30)
+toggleBtn.Position = UDim2.new(0.02, 0, 0.15, 0)
+toggleBtn.BackgroundColor3 = BackgroundColor
+toggleBtn.Text = "Clima"
+toggleBtn.TextColor3 = OutlineBlue
+toggleBtn.Font = Enum.Font.Code
+toggleBtn.TextSize = 13
+toggleBtn.Parent = gui
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 6)
+toggleCorner.Parent = toggleBtn
+
+local toggleStroke = Instance.new("UIStroke")
+toggleStroke.Color = OutlineBlue
+toggleStroke.Thickness = 1.5
+toggleStroke.Parent = toggleBtn
+
+-- ==========================================
+-- DYNAMIC WINDOW SIZING
+-- ==========================================
+local windowWidth = math.min(ViewportSize.X * 0.9, 580)
+local windowHeight = math.min(ViewportSize.Y * 0.85, 460)
+
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 600, 0, 520)
-mainFrame.Position = UDim2.new(0.5, -300, 0.5, -260)
+mainFrame.Size = UDim2.new(0, windowWidth, 0, windowHeight)
+mainFrame.Position = UDim2.new(0.5, -windowWidth/2, 0.5, -windowHeight/2)
 mainFrame.BackgroundColor3 = BackgroundColor
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = gui
 
--- Main Blue Outline
+toggleBtn.Activated:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+end)
+
 local mainStroke = Instance.new("UIStroke")
 mainStroke.Color = OutlineBlue
 mainStroke.Thickness = 1.5
 mainStroke.Parent = mainFrame
 
--- Title
+-- Window Title
 local title = Instance.new("TextLabel")
 title.Text = " Clima   .gg/climalink"
 title.Size = UDim2.new(1, 0, 0, 25)
@@ -40,32 +73,36 @@ title.BackgroundTransparency = 1
 title.TextColor3 = TextWhite
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Font = Enum.Font.Code
-title.TextSize = 14
+title.TextSize = 13
 title.Parent = mainFrame
 
 -- ==========================================
--- TOP TABS
+-- SCROLLABLE TOP TABS (MOBILE FRIENDLY)
 -- ==========================================
-local tabContainer = Instance.new("Frame")
-tabContainer.Size = UDim2.new(1, -20, 0, 25)
+local tabContainer = Instance.new("ScrollingFrame")
+tabContainer.Size = UDim2.new(1, -20, 0, 28)
 tabContainer.Position = UDim2.new(0, 10, 0, 25)
 tabContainer.BackgroundTransparency = 1
+tabContainer.BorderSizePixel = 0
+tabContainer.ScrollBarThickness = 0
+tabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+tabContainer.AutomaticCanvasSize = Enum.AutomaticSize.X
 tabContainer.Parent = mainFrame
 
 local tabLayout = Instance.new("UIListLayout")
 tabLayout.FillDirection = Enum.FillDirection.Horizontal
 tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabLayout.Padding = UDim.new(0, 15)
+tabLayout.Padding = UDim.new(0, 12)
 tabLayout.Parent = tabContainer
 
 local function createTab(name, active)
     local btn = Instance.new("TextLabel")
     btn.Text = name
-    btn.Size = UDim2.new(0, btn.TextBounds.X + 40, 1, 0)
+    btn.Size = UDim2.new(0, 80, 1, 0)
     btn.BackgroundTransparency = 1
     btn.TextColor3 = active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 130, 130)
     btn.Font = Enum.Font.Code
-    btn.TextSize = 14
+    btn.TextSize = 13
     btn.Parent = tabContainer
 end
 
@@ -75,7 +112,6 @@ createTab("Zone 2", false)
 createTab("Misc", false)
 createTab("UI Settings", false)
 
--- Top Separator Line
 local topSeparator = Instance.new("Frame")
 topSeparator.Size = UDim2.new(1, -20, 0, 1)
 topSeparator.Position = UDim2.new(0, 10, 0, 55)
@@ -84,34 +120,74 @@ topSeparator.BorderSizePixel = 0
 topSeparator.Parent = mainFrame
 
 -- ==========================================
--- LAYOUT COLUMNS
+-- MAIN SCROLLABLE CONTENT BODY
 -- ==========================================
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(1, -10, 1, -65)
+scrollFrame.Position = UDim2.new(0, 5, 0, 60)
+scrollFrame.BackgroundTransparency = 1
+scrollFrame.BorderSizePixel = 0
+scrollFrame.ScrollBarThickness = 3
+scrollFrame.ScrollBarImageColor3 = OutlineBlue
+scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollFrame.Parent = mainFrame
+
+local contentHolder = Instance.new("Frame")
+contentHolder.Size = UDim2.new(1, -5, 0, 0)
+contentHolder.AutomaticSize = Enum.AutomaticSize.Y
+contentHolder.BackgroundTransparency = 1
+contentHolder.Parent = scrollFrame
+
+local isMobilePortrait = ViewportSize.X < 500
+
 local leftColumn = Instance.new("Frame")
-leftColumn.Size = UDim2.new(0.48, 0, 1, -70)
-leftColumn.Position = UDim2.new(0, 10, 0, 65)
+leftColumn.AutomaticSize = Enum.AutomaticSize.Y
 leftColumn.BackgroundTransparency = 1
-leftColumn.Parent = mainFrame
+leftColumn.Parent = contentHolder
+
+local rightColumn = Instance.new("Frame")
+rightColumn.AutomaticSize = Enum.AutomaticSize.Y
+rightColumn.BackgroundTransparency = 1
+rightColumn.Parent = contentHolder
+
+if isMobilePortrait then
+    -- Single Column Stack for narrow screens
+    local holderLayout = Instance.new("UIListLayout")
+    holderLayout.Padding = UDim.new(0, 8)
+    holderLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    holderLayout.Parent = contentHolder
+
+    leftColumn.Size = UDim2.new(1, 0, 0, 0)
+    leftColumn.LayoutOrder = 1
+    rightColumn.Size = UDim2.new(1, 0, 0, 0)
+    rightColumn.LayoutOrder = 2
+else
+    -- Dual Column for landscape / tablet / PC
+    leftColumn.Size = UDim2.new(0.48, 0, 0, 0)
+    leftColumn.Position = UDim2.new(0, 0, 0, 0)
+    
+    rightColumn.Size = UDim2.new(0.48, 0, 0, 0)
+    rightColumn.Position = UDim2.new(0.52, 0, 0, 0)
+end
 
 local leftLayout = Instance.new("UIListLayout")
 leftLayout.Padding = UDim.new(0, 8)
+leftLayout.SortOrder = Enum.SortOrder.LayoutOrder
 leftLayout.Parent = leftColumn
-
-local rightColumn = Instance.new("Frame")
-rightColumn.Size = UDim2.new(0.48, 0, 1, -70)
-rightColumn.Position = UDim2.new(0.5, 5, 0, 65)
-rightColumn.BackgroundTransparency = 1
-rightColumn.Parent = mainFrame
 
 local rightLayout = Instance.new("UIListLayout")
 rightLayout.Padding = UDim.new(0, 8)
+rightLayout.SortOrder = Enum.SortOrder.LayoutOrder
 rightLayout.Parent = rightColumn
 
 -- ==========================================
--- UI ELEMENTS FACTORY
+-- UI FACTORY FUNCTIONS
 -- ==========================================
-local function createGroupBox(parent, titleText, height)
+local function createGroupBox(parent, titleText)
     local box = Instance.new("Frame")
-    box.Size = UDim2.new(1, 0, 0, height)
+    box.Size = UDim2.new(1, 0, 0, 0)
+    box.AutomaticSize = Enum.AutomaticSize.Y
     box.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     box.BorderSizePixel = 0
     box.Parent = parent
@@ -139,47 +215,74 @@ local function createGroupBox(parent, titleText, height)
     line.Parent = box
     
     local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, -10, 1, -25)
+    container.Size = UDim2.new(1, -10, 0, 0)
     container.Position = UDim2.new(0, 5, 0, 25)
+    container.AutomaticSize = Enum.AutomaticSize.Y
     container.BackgroundTransparency = 1
     container.Parent = box
     
     local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 5)
+    layout.Padding = UDim.new(0, 6)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Parent = container
+
+    local pad = Instance.new("UIPadding")
+    pad.PaddingBottom = UDim.new(0, 8)
+    pad.Parent = container
     
     return container
 end
 
 local function createToggle(parent, text)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 0, 18)
-    frame.BackgroundTransparency = 1
-    frame.Parent = parent
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, 0, 0, 22)
+    button.BackgroundTransparency = 1
+    button.Text = ""
+    button.Parent = parent
     
     local box = Instance.new("Frame")
-    box.Size = UDim2.new(0, 12, 0, 12)
-    box.Position = UDim2.new(0, 0, 0.5, -6)
+    box.Size = UDim2.new(0, 14, 0, 14)
+    box.Position = UDim2.new(0, 0, 0.5, -7)
     box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    box.Parent = frame
+    box.BorderSizePixel = 0
+    box.Parent = button
     
     local stroke = Instance.new("UIStroke")
     stroke.Color = Color3.fromRGB(100, 100, 100)
     stroke.Parent = box
     
+    local checkMark = Instance.new("Frame")
+    checkMark.Size = UDim2.new(1, -4, 1, -4)
+    checkMark.Position = UDim2.new(0, 2, 0, 2)
+    checkMark.BackgroundColor3 = OutlineBlue
+    checkMark.BorderSizePixel = 0
+    checkMark.Visible = false
+    checkMark.Parent = box
+    
     local label = Instance.new("TextLabel")
     label.Text = text
-    label.Size = UDim2.new(1, -20, 1, 0)
-    label.Position = UDim2.new(0, 20, 0, 0)
+    label.Size = UDim2.new(1, -22, 1, 0)
+    label.Position = UDim2.new(0, 22, 0, 0)
     label.BackgroundTransparency = 1
     label.TextColor3 = TextWhite
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Font = Enum.Font.Code
-    label.TextSize = 13
-    label.Parent = frame
+    label.TextSize = 12
+    label.Parent = button
+
+    local state = false
+    button.Activated:Connect(function()
+        state = not state
+        checkMark.Visible = state
+    end)
 end
 
 local function createInput(parent, titleText, value)
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, 0, 0, 38)
+    container.BackgroundTransparency = 1
+    container.Parent = parent
+
     local label = Instance.new("TextLabel")
     label.Text = titleText
     label.Size = UDim2.new(1, 0, 0, 15)
@@ -187,24 +290,25 @@ local function createInput(parent, titleText, value)
     label.TextColor3 = Color3.fromRGB(180, 180, 180)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Font = Enum.Font.Code
-    label.TextSize = 12
-    label.Parent = parent
+    label.TextSize = 11
+    label.Parent = container
     
-    local boxFrame = Instance.new("Frame")
+    local boxFrame = Instance.new("TextBox")
     boxFrame.Size = UDim2.new(1, 0, 0, 20)
+    boxFrame.Position = UDim2.new(0, 0, 0, 16)
     boxFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     boxFrame.BorderSizePixel = 0
-    boxFrame.Parent = parent
-    
-    local txt = Instance.new("TextLabel")
-    txt.Text = " " .. value
-    txt.Size = UDim2.new(1, 0, 1, 0)
-    txt.BackgroundTransparency = 1
-    txt.TextColor3 = TextWhite
-    txt.TextXAlignment = Enum.TextXAlignment.Left
-    txt.Font = Enum.Font.Code
-    txt.TextSize = 13
-    txt.Parent = boxFrame
+    boxFrame.Text = " " .. value
+    boxFrame.TextColor3 = TextWhite
+    boxFrame.TextXAlignment = Enum.TextXAlignment.Left
+    boxFrame.Font = Enum.Font.Code
+    boxFrame.TextSize = 12
+    boxFrame.ClearTextOnFocus = false
+    boxFrame.Parent = container
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(60, 60, 60)
+    stroke.Parent = boxFrame
 end
 
 local function createTextLine(parent, text)
@@ -215,59 +319,59 @@ local function createTextLine(parent, text)
     label.TextColor3 = TextWhite
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Font = Enum.Font.Code
-    label.TextSize = 13
+    label.TextSize = 12
     label.Parent = parent
 end
 
-local function createButton(parent, text)
-    local btnFrame = Instance.new("Frame")
-    btnFrame.Size = UDim2.new(1, 0, 0, 20)
-    btnFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    btnFrame.Parent = parent
+local function createButton(parent, text, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 24)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    btn.Text = text
+    btn.TextColor3 = TextWhite
+    btn.Font = Enum.Font.Code
+    btn.TextSize = 12
+    btn.Parent = parent
     
     local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(100, 100, 100)
-    stroke.Parent = btnFrame
+    stroke.Color = Color3.fromRGB(90, 90, 90)
+    stroke.Thickness = 1
+    stroke.Parent = btn
     
-    local label = Instance.new("TextLabel")
-    label.Text = text
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = TextWhite
-    label.Font = Enum.Font.Code
-    label.TextSize = 13
-    label.Parent = btnFrame
+    if callback then
+        btn.Activated:Connect(callback)
+    end
 end
 
 -- ==========================================
 -- LEFT COLUMN CONTENT
 -- ==========================================
-local leftGroup1 = createGroupBox(leftColumn, "Primary Actions", 185)
+local leftGroup1 = createGroupBox(leftColumn, "Primary Actions")
 createToggle(leftGroup1, "Auto Action 1")
 createToggle(leftGroup1, "Auto Action 2")
 createToggle(leftGroup1, "Auto Buy Supplies")
 createInput(leftGroup1, "Amount to buy", "3")
 createInput(leftGroup1, "Interval (seconds)", "5")
 
-local leftGroup2 = createGroupBox(leftColumn, "How to use", 125)
+local leftGroup2 = createGroupBox(leftColumn, "How to use")
 createTextLine(leftGroup2, "1. Equip necessary gear")
 createTextLine(leftGroup2, "2. Buy setup supplies")
 createTextLine(leftGroup2, "3. Activate Auto Routines")
 createTextLine(leftGroup2, "4. Position your target")
 createTextLine(leftGroup2, "5. Enjoy")
 
-local leftGroup3 = createGroupBox(leftColumn, "Auto Storage", 55)
+local leftGroup3 = createGroupBox(leftColumn, "Auto Storage")
 createToggle(leftGroup3, "Auto Store Drops")
 
 -- ==========================================
 -- RIGHT COLUMN CONTENT
 -- ==========================================
-local rightGroup1 = createGroupBox(rightColumn, "Player Settings", 95)
+local rightGroup1 = createGroupBox(rightColumn, "Player Settings")
 createToggle(rightGroup1, "Freeze Character")
 createToggle(rightGroup1, "Auto Equip Best Gear")
 createInput(rightGroup1, "Gear check (seconds)", "5")
 
-local rightGroup2 = createGroupBox(rightColumn, "Auto Crafting", 210)
+local rightGroup2 = createGroupBox(rightColumn, "Auto Crafting")
 createToggle(rightGroup2, "Auto Craft Supplies")
 createInput(rightGroup2, "Item to craft", "Legendary Supply ▼")
 createInput(rightGroup2, "Stop at amount", "300")
@@ -275,20 +379,19 @@ createInput(rightGroup2, "Craft interval (seconds)", "1")
 createInput(rightGroup2, "Walk to NPC every (s)", "60")
 createButton(rightGroup2, "Walk to NPC now")
 
-local rightGroup3 = createGroupBox(rightColumn, "Auto Sell", 130)
+local rightGroup3 = createGroupBox(rightColumn, "Auto Sell")
 createToggle(rightGroup3, "Auto Sell Items")
 createInput(rightGroup3, "Rarities to sell", "-- ▼")
 createToggle(rightGroup3, "Keep specifics")
 createInput(rightGroup3, "Stop at Currency", "1000000")
 
 -- ==========================================
--- DRAG FUNCTIONALITY
+-- TOUCH & MOUSE DRAG SUPPORT
 -- ==========================================
-local UserInputService = game:GetService("UserInputService")
 local dragging, dragInput, dragStart, startPos
 
 mainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = mainFrame.Position
@@ -301,7 +404,7 @@ mainFrame.InputBegan:Connect(function(input)
 end)
 
 mainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
     end
 end)
