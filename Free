@@ -1,198 +1,314 @@
---[[
-    Clima Project, OWNED BY ECLIPSE AND SELENA ALL RIGHTS REVERSED
-    Version: v1.0.2 | GUI: Obsidian
-]]
-
-print("[Clima] ===== STARTING =====")
-
--- ============================================================
---  1. LOAD LIBRARY
--- ============================================================
-local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
-
-local libSource = game:HttpGet(repo .. "Library.lua")
-print("[Clima] Library.lua fetched, length:", #libSource)
-
-local Library = loadstring(libSource)()
-print("[Clima] Library loaded. Type:", typeof(Library))
-
-assert(type(Library) == "table", "[Clima] Library is not a table")
-assert(type(Library.CreateWindow) == "function", "[Clima] Library.CreateWindow missing")
-assert(type(Library.Scheme) == "table", "[Clima] Library.Scheme missing")
-
-print("[Clima] Library.Scheme keys:")
-for k, v in pairs(Library.Scheme) do
-    print("    ", k, "=", typeof(v))
+-- Destroy previous instance if it exists to avoid overlaps
+if game.CoreGui:FindFirstChild("ClimaCustomGUI") then
+    game.CoreGui.ClimaCustomGUI:Destroy()
 end
 
--- ============================================================
---  2. CREATE WINDOW
--- ============================================================
-local Window = Library:CreateWindow({
-    Title            = "Clima",
-    Footer           = "v1.0.0",
-    Center           = true,
-    AutoShow         = true,
-    Icon             = 4483345998,
-    NotifySide       = "Right",
-    ShowCustomCursor = true,
-})
-print("[Clima] Window created:", typeof(Window))
+local Player = game:GetService("Players").LocalPlayer
+local CoreGui = game:GetService("CoreGui")
 
--- ============================================================
---  3. TABS
--- ============================================================
-local MainTab = Window:AddTab("Main", "bot")
-print("[Clima] Main tab added")
+local gui = Instance.new("ScreenGui")
+gui.Name = "ClimaCustomGUI"
+gui.Parent = CoreGui
+gui.ResetOnSpawn = false
 
-local SettingsTab = Window:AddTab("UI Settings", "settings")
-print("[Clima] Settings tab added")
+-- Global Theme Colors
+local BackgroundColor = Color3.fromRGB(22, 22, 22)
+local OutlineBlue = Color3.fromRGB(0, 170, 255) -- Vibrant Cyan/Blue outline
+local TextWhite = Color3.fromRGB(220, 220, 220)
 
--- ============================================================
---  4. MAIN TAB CONTENT
--- ============================================================
-local MainLeft = MainTab:AddGroupbox({
-    Side     = "Left",
-    Name     = "Main",
-    IconName = "cog",
-})
-print("[Clima] MainLeft groupbox added")
+-- ==========================================
+-- MAIN WINDOW
+-- ==========================================
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 600, 0, 520)
+mainFrame.Position = UDim2.new(0.5, -300, 0.5, -260)
+mainFrame.BackgroundColor3 = BackgroundColor
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = gui
 
-MainLeft:AddLabel("Clima Project — v1.0.0")
-MainLeft:AddLabel("Owned by Eclipse and Selena", true)
-MainLeft:AddDivider()
+-- Main Blue Outline
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = OutlineBlue
+mainStroke.Thickness = 1.5
+mainStroke.Parent = mainFrame
 
-MainLeft:AddToggle("ExampleToggle", {
-    Text     = "Auto Egg",
-    Default  = false,
-    Tooltip  = "Auto get best eggs",
-    Callback = function(v) print("[Clima] ExampleToggle:", v) end,
-})
+-- Title
+local title = Instance.new("TextLabel")
+title.Text = " Clima   .gg/climalink"
+title.Size = UDim2.new(1, 0, 0, 25)
+title.BackgroundTransparency = 1
+title.TextColor3 = TextWhite
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = Enum.Font.Code
+title.TextSize = 14
+title.Parent = mainFrame
 
-MainLeft:AddSlider("ExampleSlider", {
-    Text     = "Speed",
-    Default  = 50,
-    Min      = 0,
-    Max      = 100,
-    Rounding = 0,
-    Suffix   = "%",
-    Callback = function(v) print("[Clima] ExampleSlider:", v) end,
-})
+-- ==========================================
+-- TOP TABS
+-- ==========================================
+local tabContainer = Instance.new("Frame")
+tabContainer.Size = UDim2.new(1, -20, 0, 25)
+tabContainer.Position = UDim2.new(0, 10, 0, 25)
+tabContainer.BackgroundTransparency = 1
+tabContainer.Parent = mainFrame
 
-MainLeft:AddButton({
-    Text = "Claim all index",
-    Func = function()
-        Library:Notify({ Title = "Clima", Description = "Button clicked!", Time = 3 })
-    end,
-})
-print("[Clima] MainLeft populated")
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+tabLayout.Padding = UDim.new(0, 15)
+tabLayout.Parent = tabContainer
 
-local MainRight = MainTab:AddGroupbox({
-    Side     = "Right",
-    Name     = "Info",
-    IconName = "info",
-})
-MainRight:AddLabel("Clima Project")
-MainRight:AddLabel("Owned by Eclipse and Selena")
-MainRight:AddLabel("all rights reserved")
-print("[Clima] MainRight populated")
+local function createTab(name, active)
+    local btn = Instance.new("TextLabel")
+    btn.Text = name
+    btn.Size = UDim2.new(0, btn.TextBounds.X + 40, 1, 0)
+    btn.BackgroundTransparency = 1
+    btn.TextColor3 = active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(130, 130, 130)
+    btn.Font = Enum.Font.Code
+    btn.TextSize = 14
+    btn.Parent = tabContainer
+end
 
--- ============================================================
---  5. UI SETTINGS CONTENT
--- ============================================================
-local MenuGroup = SettingsTab:AddGroupbox({
-    Side     = "Left",
-    Name     = "Menu",
-    IconName = "wrench",
-})
+createTab("Main Area", true)
+createTab("Zone 1", false)
+createTab("Zone 2", false)
+createTab("Misc", false)
+createTab("UI Settings", false)
 
-MenuGroup:AddToggle("AlwaysOnTop", {
-    Text     = "Always On Top",
-    Default  = false,
-    Callback = function(v) Window:SetAlwaysOnTop(v) end,
-})
+-- Top Separator Line
+local topSeparator = Instance.new("Frame")
+topSeparator.Size = UDim2.new(1, -20, 0, 1)
+topSeparator.Position = UDim2.new(0, 10, 0, 55)
+topSeparator.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+topSeparator.BorderSizePixel = 0
+topSeparator.Parent = mainFrame
 
-MenuGroup:AddDropdown("NotificationSide", {
-    Values   = { "Left", "Right" },
-    Default  = "Right",
-    Text     = "Notification Side",
-    Callback = function(v) Library:SetNotifySide(v) end,
-})
+-- ==========================================
+-- LAYOUT COLUMNS
+-- ==========================================
+local leftColumn = Instance.new("Frame")
+leftColumn.Size = UDim2.new(0.48, 0, 1, -70)
+leftColumn.Position = UDim2.new(0, 10, 0, 65)
+leftColumn.BackgroundTransparency = 1
+leftColumn.Parent = mainFrame
 
-MenuGroup:AddSlider("UICornerSlider", {
-    Text     = "Corner Radius",
-    Default  = Library.CornerRadius or 6,
-    Min      = 0,
-    Max      = 20,
-    Rounding = 0,
-    Callback = function(v) Window:SetCornerRadius(v) end,
-})
+local leftLayout = Instance.new("UIListLayout")
+leftLayout.Padding = UDim.new(0, 8)
+leftLayout.Parent = leftColumn
 
-MenuGroup:AddDivider()
-MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", {
-    Default = "RightControl",
-    NoUI    = true,
-    Text    = "Menu keybind",
-})
-Library.ToggleKeybind = Library.Options.MenuKeybind
-print("[Clima] ToggleKeybind set to:", Library.ToggleKeybind)
+local rightColumn = Instance.new("Frame")
+rightColumn.Size = UDim2.new(0.48, 0, 1, -70)
+rightColumn.Position = UDim2.new(0.5, 5, 0, 65)
+rightColumn.BackgroundTransparency = 1
+rightColumn.Parent = mainFrame
 
-MenuGroup:AddButton({
-    Text = "Unload",
-    Func = function() Library:Unload() end,
-})
+local rightLayout = Instance.new("UIListLayout")
+rightLayout.Padding = UDim.new(0, 8)
+rightLayout.Parent = rightColumn
 
--- ============================================================
---  6. 💙 APPLY BLUE/CYAN OUTLINE
---  We find every UIStroke in the library's ScreenGui and
---  recolor it. This bypasses Library.Scheme entirely — works
---  even if the scheme key names differ between builds.
--- ============================================================
-task.defer(function()
-    task.wait(0.1)
+-- ==========================================
+-- UI ELEMENTS FACTORY
+-- ==========================================
+local function createGroupBox(parent, titleText, height)
+    local box = Instance.new("Frame")
+    box.Size = UDim2.new(1, 0, 0, height)
+    box.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    box.BorderSizePixel = 0
+    box.Parent = parent
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = OutlineBlue
+    stroke.Thickness = 1
+    stroke.Parent = box
+    
+    local label = Instance.new("TextLabel")
+    label.Text = " " .. titleText
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = TextWhite
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Font = Enum.Font.Code
+    label.TextSize = 13
+    label.Parent = box
+    
+    local line = Instance.new("Frame")
+    line.Size = UDim2.new(1, 0, 0, 1)
+    line.Position = UDim2.new(0, 0, 0, 20)
+    line.BackgroundColor3 = OutlineBlue
+    line.BorderSizePixel = 0
+    line.Parent = box
+    
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, -10, 1, -25)
+    container.Position = UDim2.new(0, 5, 0, 25)
+    container.BackgroundTransparency = 1
+    container.Parent = box
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 5)
+    layout.Parent = container
+    
+    return container
+end
 
-    local cyan    = Color3.fromRGB(0, 229, 255)
-    local blue    = Color3.fromRGB(30, 144, 255)
-    local strokeCount = 0
+local function createToggle(parent, text)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 18)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    
+    local box = Instance.new("Frame")
+    box.Size = UDim2.new(0, 12, 0, 12)
+    box.Position = UDim2.new(0, 0, 0.5, -6)
+    box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    box.Parent = frame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(100, 100, 100)
+    stroke.Parent = box
+    
+    local label = Instance.new("TextLabel")
+    label.Text = text
+    label.Size = UDim2.new(1, -20, 1, 0)
+    label.Position = UDim2.new(0, 20, 0, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = TextWhite
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Font = Enum.Font.Code
+    label.TextSize = 13
+    label.Parent = frame
+end
 
-    -- Find the library's ScreenGui (Obsidian parents it to CoreGui or gethui)
-    local containers = {}
-    pcall(function() table.insert(containers, game:GetService("CoreGui")) end)
-    pcall(function() if gethui then table.insert(containers, gethui()) end end)
-    pcall(function() table.insert(containers, game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")) end)
+local function createInput(parent, titleText, value)
+    local label = Instance.new("TextLabel")
+    label.Text = titleText
+    label.Size = UDim2.new(1, 0, 0, 15)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(180, 180, 180)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Font = Enum.Font.Code
+    label.TextSize = 12
+    label.Parent = parent
+    
+    local boxFrame = Instance.new("Frame")
+    boxFrame.Size = UDim2.new(1, 0, 0, 20)
+    boxFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    boxFrame.BorderSizePixel = 0
+    boxFrame.Parent = parent
+    
+    local txt = Instance.new("TextLabel")
+    txt.Text = " " .. value
+    txt.Size = UDim2.new(1, 0, 1, 0)
+    txt.BackgroundTransparency = 1
+    txt.TextColor3 = TextWhite
+    txt.TextXAlignment = Enum.TextXAlignment.Left
+    txt.Font = Enum.Font.Code
+    txt.TextSize = 13
+    txt.Parent = boxFrame
+end
 
-    for _, container in ipairs(containers) do
-        for _, obj in ipairs(container:GetDescendants()) do
-            if obj:IsA("UIStroke") then
-                -- Skip strokes inside buttons that would look weird, but
-                -- for now just recolor everything to cyan.
-                obj.Color = cyan
-                obj.Transparency = math.min(obj.Transparency, 0.2)
-                obj.Thickness = math.max(obj.Thickness, 1)
-                strokeCount = strokeCount + 1
+local function createTextLine(parent, text)
+    local label = Instance.new("TextLabel")
+    label.Text = text
+    label.Size = UDim2.new(1, 0, 0, 16)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = TextWhite
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Font = Enum.Font.Code
+    label.TextSize = 13
+    label.Parent = parent
+end
+
+local function createButton(parent, text)
+    local btnFrame = Instance.new("Frame")
+    btnFrame.Size = UDim2.new(1, 0, 0, 20)
+    btnFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    btnFrame.Parent = parent
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(100, 100, 100)
+    stroke.Parent = btnFrame
+    
+    local label = Instance.new("TextLabel")
+    label.Text = text
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = TextWhite
+    label.Font = Enum.Font.Code
+    label.TextSize = 13
+    label.Parent = btnFrame
+end
+
+-- ==========================================
+-- LEFT COLUMN CONTENT
+-- ==========================================
+local leftGroup1 = createGroupBox(leftColumn, "Primary Actions", 185)
+createToggle(leftGroup1, "Auto Action 1")
+createToggle(leftGroup1, "Auto Action 2")
+createToggle(leftGroup1, "Auto Buy Supplies")
+createInput(leftGroup1, "Amount to buy", "3")
+createInput(leftGroup1, "Interval (seconds)", "5")
+
+local leftGroup2 = createGroupBox(leftColumn, "How to use", 125)
+createTextLine(leftGroup2, "1. Equip necessary gear")
+createTextLine(leftGroup2, "2. Buy setup supplies")
+createTextLine(leftGroup2, "3. Activate Auto Routines")
+createTextLine(leftGroup2, "4. Position your target")
+createTextLine(leftGroup2, "5. Enjoy")
+
+local leftGroup3 = createGroupBox(leftColumn, "Auto Storage", 55)
+createToggle(leftGroup3, "Auto Store Drops")
+
+-- ==========================================
+-- RIGHT COLUMN CONTENT
+-- ==========================================
+local rightGroup1 = createGroupBox(rightColumn, "Player Settings", 95)
+createToggle(rightGroup1, "Freeze Character")
+createToggle(rightGroup1, "Auto Equip Best Gear")
+createInput(rightGroup1, "Gear check (seconds)", "5")
+
+local rightGroup2 = createGroupBox(rightColumn, "Auto Crafting", 210)
+createToggle(rightGroup2, "Auto Craft Supplies")
+createInput(rightGroup2, "Item to craft", "Legendary Supply ▼")
+createInput(rightGroup2, "Stop at amount", "300")
+createInput(rightGroup2, "Craft interval (seconds)", "1")
+createInput(rightGroup2, "Walk to NPC every (s)", "60")
+createButton(rightGroup2, "Walk to NPC now")
+
+local rightGroup3 = createGroupBox(rightColumn, "Auto Sell", 130)
+createToggle(rightGroup3, "Auto Sell Items")
+createInput(rightGroup3, "Rarities to sell", "-- ▼")
+createToggle(rightGroup3, "Keep specifics")
+createInput(rightGroup3, "Stop at Currency", "1000000")
+
+-- ==========================================
+-- DRAG FUNCTIONALITY
+-- ==========================================
+local UserInputService = game:GetService("UserInputService")
+local dragging, dragInput, dragStart, startPos
+
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
             end
-        end
+        end)
     end
-
-    print("[Clima] Recolored", strokeCount, "UIStrokes to cyan")
-
-    -- Also tint the accent color used by toggles/sliders if the key exists
-    pcall(function()
-        Library.Scheme.Accent = cyan
-        Library.Scheme.Outline = cyan
-        Library.Scheme.Toggle = cyan
-        Library.Scheme.Slider = cyan
-        if Library.UpdateColors then Library.UpdateColors() end
-    end)
 end)
 
--- ============================================================
---  7. WELCOME
--- ============================================================
-Library:Notify({
-    Title       = "Steal an Egg",
-    Description = "v1.0.0 loaded",
-    Time        = 5,
-})
+mainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
 
-print("[Clima] ===== DONE =====")
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
