@@ -1,444 +1,398 @@
-if game.CoreGui:FindFirstChild("ClimaMobileGUI") then
-    game.CoreGui.ClimaMobileGUI:Destroy()
+-- ==========================================
+-- SETUP & CLEANUP
+-- ==========================================
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+
+if CoreGui:FindFirstChild("ClimaSimpleGUI") then
+    CoreGui.ClimaSimpleGUI:Destroy()
 end
 
-local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ClimaSimpleGUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "ClimaMobileGUI"
-gui.Parent = CoreGui
-gui.ResetOnSpawn = false
-
--- Strict Cyan/Blue Theme
-local BackgroundColor = Color3.fromRGB(20, 20, 20)
-local OutlineCyan = Color3.fromRGB(0, 220, 255) 
+-- Theme Colors (Cyan/Blue)
+local Cyan = Color3.fromRGB(0, 200, 255)
+local DarkBg = Color3.fromRGB(18, 18, 18)
+local SectionBg = Color3.fromRGB(26, 26, 26)
 local TextWhite = Color3.fromRGB(230, 230, 230)
 
--- Icon Asset IDs
-local ICONS = {
-    Menu = "rbxassetid://6031091004",    -- Floating toggle icon
-    Lock = "rbxassetid://6031082533",    -- Locked icon
-    Unlock = "rbxassetid://6031082525",  -- Unlocked icon
-    Hide = "rbxassetid://6031094678"     -- Minimize/Hide icon
-}
+-- ==========================================
+-- FLOATING TOGGLE BUTTON (FOR MOBILE)
+-- ==========================================
+local OpenBtn = Instance.new("TextButton")
+OpenBtn.Size = UDim2.new(0, 60, 0, 30)
+OpenBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
+OpenBtn.BackgroundColor3 = DarkBg
+OpenBtn.Text = "Clima"
+OpenBtn.TextColor3 = Cyan
+OpenBtn.Font = Enum.Font.Code
+OpenBtn.TextSize = 14
+OpenBtn.Parent = ScreenGui
+
+local OpenStroke = Instance.new("UIStroke")
+OpenStroke.Color = Cyan
+OpenStroke.Thickness = 1.5
+OpenStroke.Parent = OpenBtn
 
 -- ==========================================
--- FLOATING MOBILE TOGGLE ICON
+-- MAIN WINDOW (EXACT COMPACT SIZE FROM IMAGE)
 -- ==========================================
-local floatingToggle = Instance.new("ImageButton")
-floatingToggle.Name = "ClimaToggle"
-floatingToggle.Size = UDim2.new(0, 45, 0, 45)
-floatingToggle.Position = UDim2.new(0.02, 0, 0.15, 0)
-floatingToggle.BackgroundColor3 = BackgroundColor
-floatingToggle.Image = ICONS.Menu
-floatingToggle.ImageColor3 = OutlineCyan
-floatingToggle.Parent = gui
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = UDim2.new(0, 510, 0, 440) -- Exact square/compact ratio like screenshot
+Main.Position = UDim2.new(0.5, -255, 0.5, -220)
+Main.BackgroundColor3 = DarkBg
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
 
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 8)
-toggleCorner.Parent = floatingToggle
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Cyan
+MainStroke.Thickness = 1.5
+MainStroke.Parent = Main
 
-local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = OutlineCyan
-toggleStroke.Thickness = 2
-toggleStroke.Parent = floatingToggle
+OpenBtn.MouseButton1Click:Connect(function()
+    Main.Visible = not Main.Visible
+end)
 
--- ==========================================
--- MAIN MOBILE WINDOW
--- ==========================================
-local mainFrame = Instance.new("Frame")
--- Sized relative to screen (90% width, 85% height) for proper mobile fit
-mainFrame.Size = UDim2.new(0.9, 0, 0.85, 0)
-mainFrame.Position = UDim2.new(0.05, 0, 0.075, 0)
-mainFrame.BackgroundColor3 = BackgroundColor
-mainFrame.BorderSizePixel = 0
-mainFrame.Visible = false -- Starts hidden, tap the floating icon to open
-mainFrame.Parent = gui
+-- Top Title Bar
+local Title = Instance.new("TextLabel")
+Title.Text = " Feral   .gg/feraltoogood"
+Title.Size = UDim2.new(0.7, 0, 0, 25)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = TextWhite
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Font = Enum.Font.Code
+Title.TextSize = 13
+Title.Parent = Main
 
-local mainStroke = Instance.new("UIStroke")
-mainStroke.Color = OutlineCyan
-mainStroke.Thickness = 2
-mainStroke.Parent = mainFrame
+-- Lock Icon/Button
+local LockBtn = Instance.new("TextButton")
+LockBtn.Size = UDim2.new(0, 25, 0, 25)
+LockBtn.Position = UDim2.new(1, -30, 0, 0)
+LockBtn.BackgroundTransparency = 1
+LockBtn.Text = "🔓"
+LockBtn.TextSize = 14
+LockBtn.Parent = Main
 
-floatingToggle.Activated:Connect(function()
-    mainFrame.Visible = not mainFrame.Visible
-    floatingToggle.Visible = not mainFrame.Visible
+local IsLocked = false
+LockBtn.MouseButton1Click:Connect(function()
+    IsLocked = not IsLocked
+    LockBtn.Text = IsLocked and "🔒" or "🔓"
 end)
 
 -- ==========================================
--- TOP BAR & WINDOW CONTROLS
+-- TABS CONTAINER
 -- ==========================================
-local topBar = Instance.new("Frame")
-topBar.Size = UDim2.new(1, 0, 0, 40)
-topBar.BackgroundTransparency = 1
-topBar.Parent = mainFrame
+local TabBar = Instance.new("Frame")
+TabBar.Size = UDim2.new(1, -20, 0, 25)
+TabBar.Position = UDim2.new(0, 10, 0, 25)
+TabBar.BackgroundTransparency = 1
+TabBar.Parent = Main
 
-local title = Instance.new("TextLabel")
-title.Text = " Clima   .gg/climalink"
-title.Size = UDim2.new(0.6, 0, 1, 0)
-title.Position = UDim2.new(0, 10, 0, 0)
-title.BackgroundTransparency = 1
-title.TextColor3 = TextWhite
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Font = Enum.Font.Code
-title.TextSize = 16
-title.Parent = topBar
+local TabLayout = Instance.new("UIListLayout")
+TabLayout.FillDirection = Enum.FillDirection.Horizontal
+TabLayout.Padding = UDim.new(0, 12)
+TabLayout.Parent = TabBar
 
-local controlLayout = Instance.new("UIListLayout")
-controlLayout.FillDirection = Enum.FillDirection.Horizontal
-controlLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-controlLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-controlLayout.Padding = UDim.new(0, 15)
-controlLayout.Parent = topBar
+local TopLine = Instance.new("Frame")
+TopLine.Size = UDim2.new(1, -20, 0, 1)
+TopLine.Position = UDim2.new(0, 10, 0, 52)
+TopLine.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+TopLine.BorderSizePixel = 0
+TopLine.Parent = Main
 
--- Top right container for icons
-local controlContainer = Instance.new("Frame")
-controlContainer.Size = UDim2.new(0.35, -15, 1, 0)
-controlContainer.Position = UDim2.new(0.65, 0, 0, 0)
-controlContainer.BackgroundTransparency = 1
-controlContainer.Parent = topBar
-
-local iconsLayout = Instance.new("UIListLayout")
-iconsLayout.FillDirection = Enum.FillDirection.Horizontal
-iconsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-iconsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-iconsLayout.Padding = UDim.new(0, 15)
-iconsLayout.Parent = controlContainer
-
--- Lock Button
-local lockBtn = Instance.new("ImageButton")
-lockBtn.Size = UDim2.new(0, 24, 0, 24)
-lockBtn.BackgroundTransparency = 1
-lockBtn.Image = ICONS.Unlock
-lockBtn.ImageColor3 = TextWhite
-lockBtn.Parent = controlContainer
-
--- Hide/Minimize Button
-local hideBtn = Instance.new("ImageButton")
-hideBtn.Size = UDim2.new(0, 24, 0, 24)
-hideBtn.BackgroundTransparency = 1
-hideBtn.Image = ICONS.Hide
-hideBtn.ImageColor3 = TextWhite
-hideBtn.Parent = controlContainer
-
-hideBtn.Activated:Connect(function()
-    mainFrame.Visible = false
-    floatingToggle.Visible = true
-end)
-
-local topSeparator = Instance.new("Frame")
-topSeparator.Size = UDim2.new(1, 0, 0, 1)
-topSeparator.Position = UDim2.new(0, 0, 0, 40)
-topSeparator.BackgroundColor3 = OutlineCyan
-topSeparator.BorderSizePixel = 0
-topSeparator.Parent = mainFrame
+local PageContainer = Instance.new("Frame")
+PageContainer.Size = UDim2.new(1, -20, 1, -60)
+PageContainer.Position = UDim2.new(0, 10, 0, 55)
+PageContainer.BackgroundTransparency = 1
+PageContainer.Parent = Main
 
 -- ==========================================
--- SCROLLABLE TOP TABS
+-- EASY HELPER FUNCTIONS (FOR EDITING)
 -- ==========================================
-local tabContainer = Instance.new("ScrollingFrame")
-tabContainer.Size = UDim2.new(1, -20, 0, 40)
-tabContainer.Position = UDim2.new(0, 10, 0, 45)
-tabContainer.BackgroundTransparency = 1
-tabContainer.BorderSizePixel = 0
-tabContainer.ScrollBarThickness = 0
-tabContainer.AutomaticCanvasSize = Enum.AutomaticSize.X
-tabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
-tabContainer.Parent = mainFrame
+local AllTabs = {}
 
-local tabLayout = Instance.new("UIListLayout")
-tabLayout.FillDirection = Enum.FillDirection.Horizontal
-tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabLayout.Padding = UDim.new(0, 15)
-tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-tabLayout.Parent = tabContainer
+function CreateTab(tabName, isDefault)
+    -- 1. Create Tab Button
+    local TabBtn = Instance.new("TextButton")
+    TabBtn.Text = tabName
+    TabBtn.Size = UDim2.new(0, 0, 1, 0)
+    TabBtn.AutomaticSize = Enum.AutomaticSize.X
+    TabBtn.BackgroundTransparency = 1
+    TabBtn.TextColor3 = isDefault and Cyan or Color3.fromRGB(130, 130, 130)
+    TabBtn.Font = Enum.Font.Code
+    TabBtn.TextSize = 13
+    TabBtn.Parent = TabBar
 
-local function createTab(name, active)
-    local btn = Instance.new("TextLabel")
-    btn.Text = name
-    btn.Size = UDim2.new(0, btn.TextBounds.X + 20, 1, 0)
-    btn.BackgroundTransparency = 1
-    btn.TextColor3 = active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(120, 120, 120)
-    btn.Font = Enum.Font.Code
-    btn.TextSize = 14
-    btn.Parent = tabContainer
+    -- 2. Create Page Content (Scrolling)
+    local Page = Instance.new("ScrollingFrame")
+    Page.Size = UDim2.new(1, 0, 1, 0)
+    Page.BackgroundTransparency = 1
+    Page.BorderSizePixel = 0
+    Page.ScrollBarThickness = 3
+    Page.ScrollBarImageColor3 = Cyan
+    Page.Visible = isDefault or false
+    Page.CanvasSize = UDim2.new(0, 0, 0, 0)
+    Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Page.Parent = PageContainer
+
+    -- Columns inside Page
+    local LeftCol = Instance.new("Frame")
+    LeftCol.Size = UDim2.new(0.49, 0, 0, 0)
+    LeftCol.AutomaticSize = Enum.AutomaticSize.Y
+    LeftCol.BackgroundTransparency = 1
+    LeftCol.Parent = Page
+
+    local RightCol = Instance.new("Frame")
+    RightCol.Size = UDim2.new(0.49, 0, 0, 0)
+    RightCol.Position = UDim2.new(0.51, 0, 0, 0)
+    RightCol.AutomaticSize = Enum.AutomaticSize.Y
+    RightCol.BackgroundTransparency = 1
+    RightCol.Parent = Page
+
+    local LLayout = Instance.new("UIListLayout")
+    LLayout.Padding = UDim.new(0, 8)
+    LLayout.Parent = LeftCol
+
+    local RLayout = Instance.new("UIListLayout")
+    RLayout.Padding = UDim.new(0, 8)
+    RLayout.Parent = RightCol
+
+    -- Tab Click Switcher
+    table.insert(AllTabs, {Btn = TabBtn, Page = Page})
+    TabBtn.MouseButton1Click:Connect(function()
+        for _, t in pairs(AllTabs) do
+            t.Page.Visible = false
+            t.Btn.TextColor3 = Color3.fromRGB(130, 130, 130)
+        end
+        Page.Visible = true
+        TabBtn.TextColor3 = Cyan
+    end)
+
+    return LeftCol, RightCol
 end
 
-createTab("Main Area", true)
-createTab("Zone 1", false)
-createTab("Zone 2", false)
-createTab("Misc", false)
-createTab("UI Settings", false)
+function CreateSection(column, title)
+    local Box = Instance.new("Frame")
+    Box.Size = UDim2.new(1, 0, 0, 0)
+    Box.AutomaticSize = Enum.AutomaticSize.Y
+    Box.BackgroundColor3 = SectionBg
+    Box.BorderSizePixel = 0
+    Box.Parent = column
 
-local tabSeparator = Instance.new("Frame")
-tabSeparator.Size = UDim2.new(1, -20, 0, 1)
-tabSeparator.Position = UDim2.new(0, 10, 0, 85)
-tabSeparator.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-tabSeparator.BorderSizePixel = 0
-tabSeparator.Parent = mainFrame
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = Cyan
+    Stroke.Thickness = 1
+    Stroke.Parent = Box
 
--- ==========================================
--- MAIN CONTENT BODY (2 COLUMNS FOR MOBILE LANDSCAPE)
--- ==========================================
-local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Size = UDim2.new(1, -10, 1, -95)
-scrollFrame.Position = UDim2.new(0, 5, 0, 90)
-scrollFrame.BackgroundTransparency = 1
-scrollFrame.BorderSizePixel = 0
-scrollFrame.ScrollBarThickness = 4
-scrollFrame.ScrollBarImageColor3 = OutlineCyan
-scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-scrollFrame.Parent = mainFrame
+    local Header = Instance.new("TextLabel")
+    Header.Text = " " .. title
+    Header.Size = UDim2.new(1, 0, 0, 20)
+    Header.TextColor3 = TextWhite
+    Header.Font = Enum.Font.Code
+    Header.TextSize = 13
+    Header.TextXAlignment = Enum.TextXAlignment.Left
+    Header.BackgroundTransparency = 1
+    Header.Parent = Box
 
-local contentHolder = Instance.new("Frame")
-contentHolder.Size = UDim2.new(1, -5, 0, 0)
-contentHolder.AutomaticSize = Enum.AutomaticSize.Y
-contentHolder.BackgroundTransparency = 1
-contentHolder.Parent = scrollFrame
+    local Divider = Instance.new("Frame")
+    Divider.Size = UDim2.new(1, 0, 0, 1)
+    Divider.Position = UDim2.new(0, 0, 0, 20)
+    Divider.BackgroundColor3 = Cyan
+    Divider.BorderSizePixel = 0
+    Divider.Parent = Box
 
-local leftColumn = Instance.new("Frame")
-leftColumn.Size = UDim2.new(0.48, 0, 0, 0)
-leftColumn.Position = UDim2.new(0, 0, 0, 0)
-leftColumn.AutomaticSize = Enum.AutomaticSize.Y
-leftColumn.BackgroundTransparency = 1
-leftColumn.Parent = contentHolder
+    local Content = Instance.new("Frame")
+    Content.Position = UDim2.new(0, 6, 0, 24)
+    Content.Size = UDim2.new(1, -12, 0, 0)
+    Content.AutomaticSize = Enum.AutomaticSize.Y
+    Content.BackgroundTransparency = 1
+    Content.Parent = Box
 
-local rightColumn = Instance.new("Frame")
-rightColumn.Size = UDim2.new(0.48, 0, 0, 0)
-rightColumn.Position = UDim2.new(0.52, 0, 0, 0)
-rightColumn.AutomaticSize = Enum.AutomaticSize.Y
-rightColumn.BackgroundTransparency = 1
-rightColumn.Parent = contentHolder
+    local Layout = Instance.new("UIListLayout")
+    Layout.Padding = UDim.new(0, 5)
+    Layout.Parent = Content
 
-local leftLayout = Instance.new("UIListLayout")
-leftLayout.Padding = UDim.new(0, 10)
-leftLayout.Parent = leftColumn
+    local Pad = Instance.new("UIPadding")
+    Pad.PaddingBottom = UDim.new(0, 8)
+    Pad.Parent = Content
 
-local rightLayout = Instance.new("UIListLayout")
-rightLayout.Padding = UDim.new(0, 10)
-rightLayout.Parent = rightColumn
-
--- ==========================================
--- FAT-FINGER UI FACTORY (TALLER HEIGHTS)
--- ==========================================
-local function createGroupBox(parent, titleText)
-    local box = Instance.new("Frame")
-    box.Size = UDim2.new(1, 0, 0, 0)
-    box.AutomaticSize = Enum.AutomaticSize.Y
-    box.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
-    box.BorderSizePixel = 0
-    box.Parent = parent
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = OutlineCyan
-    stroke.Thickness = 1
-    stroke.Parent = box
-    
-    local label = Instance.new("TextLabel")
-    label.Text = "  " .. titleText
-    label.Size = UDim2.new(1, 0, 0, 25)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = TextWhite
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Font = Enum.Font.Code
-    label.TextSize = 14
-    label.Parent = box
-    
-    local line = Instance.new("Frame")
-    line.Size = UDim2.new(1, 0, 0, 1)
-    line.Position = UDim2.new(0, 0, 0, 25)
-    line.BackgroundColor3 = OutlineCyan
-    line.BorderSizePixel = 0
-    line.Parent = box
-    
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, -10, 0, 0)
-    container.Position = UDim2.new(0, 5, 0, 30)
-    container.AutomaticSize = Enum.AutomaticSize.Y
-    container.BackgroundTransparency = 1
-    container.Parent = box
-    
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 8)
-    layout.Parent = container
-
-    local pad = Instance.new("UIPadding")
-    pad.PaddingBottom = UDim.new(0, 10)
-    pad.Parent = container
-    
-    return container
+    return Content
 end
 
-local function createToggle(parent, text)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 0, 32) -- Increased for touch
-    button.BackgroundTransparency = 1
-    button.Text = ""
-    button.Parent = parent
-    
-    local box = Instance.new("Frame")
-    box.Size = UDim2.new(0, 20, 0, 20)
-    box.Position = UDim2.new(0, 5, 0.5, -10)
-    box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    box.BorderSizePixel = 0
-    box.Parent = button
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(100, 100, 100)
-    stroke.Parent = box
-    
-    local checkMark = Instance.new("Frame")
-    checkMark.Size = UDim2.new(1, -6, 1, -6)
-    checkMark.Position = UDim2.new(0, 3, 0, 3)
-    checkMark.BackgroundColor3 = OutlineCyan
-    checkMark.BorderSizePixel = 0
-    checkMark.Visible = false
-    checkMark.Parent = box
-    
-    local label = Instance.new("TextLabel")
-    label.Text = text
-    label.Size = UDim2.new(1, -35, 1, 0)
-    label.Position = UDim2.new(0, 35, 0, 0)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = TextWhite
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Font = Enum.Font.Code
-    label.TextSize = 13
-    label.Parent = button
+function CreateToggle(section, text, callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 18)
+    Btn.BackgroundTransparency = 1
+    Btn.Text = ""
+    Btn.Parent = section
 
-    local state = false
-    button.Activated:Connect(function()
-        state = not state
-        checkMark.Visible = state
-        stroke.Color = state and OutlineCyan or Color3.fromRGB(100, 100, 100)
+    local Box = Instance.new("Frame")
+    Box.Size = UDim2.new(0, 12, 0, 12)
+    Box.Position = UDim2.new(0, 0, 0.5, -6)
+    Box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Box.BorderSizePixel = 0
+    Box.Parent = Btn
+
+    local Check = Instance.new("Frame")
+    Check.Size = UDim2.new(1, -4, 1, -4)
+    Check.Position = UDim2.new(0, 2, 0, 2)
+    Check.BackgroundColor3 = Cyan
+    Check.BorderSizePixel = 0
+    Check.Visible = false
+    Check.Parent = Box
+
+    local Label = Instance.new("TextLabel")
+    Label.Text = text
+    Label.Size = UDim2.new(1, -20, 1, 0)
+    Label.Position = UDim2.new(0, 20, 0, 0)
+    Label.TextColor3 = TextWhite
+    Label.Font = Enum.Font.Code
+    Label.TextSize = 12
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.BackgroundTransparency = 1
+    Label.Parent = Btn
+
+    local State = false
+    Btn.MouseButton1Click:Connect(function()
+        State = not State
+        Check.Visible = State
+        if callback then callback(State) end
     end)
 end
 
-local function createInput(parent, titleText, value)
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, 0, 0, 50) -- Increased for touch
-    container.BackgroundTransparency = 1
-    container.Parent = parent
+function CreateInput(section, titleText, defaultValue)
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 34)
+    Container.BackgroundTransparency = 1
+    Container.Parent = section
 
-    local label = Instance.new("TextLabel")
-    label.Text = " " .. titleText
-    label.Size = UDim2.new(1, 0, 0, 18)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(180, 180, 180)
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Font = Enum.Font.Code
-    label.TextSize = 12
-    label.Parent = container
-    
-    local boxFrame = Instance.new("TextBox")
-    boxFrame.Size = UDim2.new(1, -10, 0, 28)
-    boxFrame.Position = UDim2.new(0, 5, 0, 20)
-    boxFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    boxFrame.BorderSizePixel = 0
-    boxFrame.Text = " " .. value
-    boxFrame.TextColor3 = TextWhite
-    boxFrame.TextXAlignment = Enum.TextXAlignment.Left
-    boxFrame.Font = Enum.Font.Code
-    boxFrame.TextSize = 13
-    boxFrame.ClearTextOnFocus = false
-    boxFrame.Parent = container
+    local Label = Instance.new("TextLabel")
+    Label.Text = titleText
+    Label.Size = UDim2.new(1, 0, 0, 14)
+    Label.TextColor3 = Color3.fromRGB(170, 170, 170)
+    Label.Font = Enum.Font.Code
+    Label.TextSize = 11
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.BackgroundTransparency = 1
+    Label.Parent = Container
 
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(70, 70, 70)
-    stroke.Parent = boxFrame
+    local Box = Instance.new("TextBox")
+    Box.Size = UDim2.new(1, 0, 0, 18)
+    Box.Position = UDim2.new(0, 0, 0, 15)
+    Box.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    Box.BorderSizePixel = 0
+    Box.Text = " " .. defaultValue
+    Box.TextColor3 = TextWhite
+    Box.Font = Enum.Font.Code
+    Box.TextSize = 12
+    Box.TextXAlignment = Enum.TextXAlignment.Left
+    Box.ClearTextOnFocus = false
+    Box.Parent = Container
 end
 
-local function createButton(parent, text)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -10, 0, 35)
-    btn.Position = UDim2.new(0, 5, 0, 0)
-    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    btn.Text = text
-    btn.TextColor3 = TextWhite
-    btn.Font = Enum.Font.Code
-    btn.TextSize = 14
-    btn.Parent = parent
+function CreateLabel(section, text)
+    local Label = Instance.new("TextLabel")
+    Label.Text = text
+    Label.Size = UDim2.new(1, 0, 0, 15)
+    Label.TextColor3 = TextWhite
+    Label.Font = Enum.Font.Code
+    Label.TextSize = 12
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.BackgroundTransparency = 1
+    Label.Parent = section
+end
+
+function CreateButton(section, text, callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 20)
+    Btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Btn.Text = text
+    Btn.TextColor3 = TextWhite
+    Btn.Font = Enum.Font.Code
+    Btn.TextSize = 12
+    Btn.BorderSizePixel = 0
+    Btn.Parent = section
     
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(90, 90, 90)
-    stroke.Thickness = 1
-    stroke.Parent = btn
+    if callback then
+        Btn.MouseButton1Click:Connect(callback)
+    end
 end
 
 -- ==========================================
--- LEFT COLUMN CONTENT
+-- BUILD PAGES & SECTIONS (MATCHING YOUR IMAGE)
 -- ==========================================
-local leftGroup1 = createGroupBox(leftColumn, "Primary Actions")
-createToggle(leftGroup1, "Auto Action 1")
-createToggle(leftGroup1, "Auto Action 2")
-createToggle(leftGroup1, "Auto Buy Supplies")
-createInput(leftGroup1, "Amount to buy", "3")
-createInput(leftGroup1, "Interval (seconds)", "5")
 
-local leftGroup3 = createGroupBox(leftColumn, "Auto Storage")
-createToggle(leftGroup3, "Auto Store Drops")
+-- 1. Create Clickable Tabs
+local FishingLeft, FishingRight = CreateTab("Fishing", true) -- Default selected
+local Sea1Left, Sea1Right       = CreateTab("Sea 1", false)
+local Sea2Left, Sea2Right       = CreateTab("Sea 2", false)
+local OtherLeft, OtherRight     = CreateTab("Other", false)
+local SettingsLeft, SettingsRight = CreateTab("UI Settings", false)
+
+-- --- FISHING TAB (LEFT COLUMN) ---
+local SecFishing = CreateSection(FishingLeft, "Fishing")
+CreateToggle(SecFishing, "Auto Fish")
+CreateToggle(SecFishing, "Auto Cast Rod")
+CreateToggle(SecFishing, "Auto Buy Bait")
+CreateInput(SecFishing, "Amount to buy", "3")
+CreateInput(SecFishing, "Interval (seconds)", "5")
+
+local SecHowTo = CreateSection(FishingLeft, "How to use")
+CreateLabel(SecHowTo, "1. Buy rod at Shells Town")
+CreateLabel(SecHowTo, "2. Buy Bait")
+CreateLabel(SecHowTo, "3. Activate Auto Fish/Auto Cast")
+CreateLabel(SecHowTo, "4. Put your Cursor on the Water")
+CreateLabel(SecHowTo, "5. Enjoy")
+
+local SecFruits = CreateSection(FishingLeft, "Auto Store Fruits")
+CreateToggle(SecFruits, "Auto Store Fruits")
+
+-- --- FISHING TAB (RIGHT COLUMN) ---
+local SecPlayer = CreateSection(FishingRight, "Player Settings")
+CreateToggle(SecPlayer, "Freeze Character")
+CreateToggle(SecPlayer, "Auto Equip Best Title")
+CreateInput(SecPlayer, "Title check (seconds)", "5")
+
+local SecCraft = CreateSection(FishingRight, "Auto Craft Fishing Bait")
+CreateToggle(SecCraft, "Auto Craft Fishing Bait")
+CreateInput(SecCraft, "Bait to craft", "Legendary Fish Bait")
+CreateInput(SecCraft, "Stop at amount", "300")
+CreateInput(SecCraft, "Craft interval (seconds)", "1")
+CreateInput(SecCraft, "Walk to craftsman every (s)", "60")
+CreateButton(SecCraft, "Walk to Craftsman now")
+
+local SecSell = CreateSection(FishingRight, "Auto Sell Fish")
+CreateToggle(SecSell, "Auto Sell Fish")
+CreateInput(SecSell, "Rarities to sell", "--")
+CreateToggle(SecSell, "Keep fish for bait")
+CreateInput(SecSell, "Stop at Peli", "1000000")
 
 -- ==========================================
--- RIGHT COLUMN CONTENT
+-- DRAGGING FUNCTION (PC & MOBILE TOUCH)
 -- ==========================================
-local rightGroup1 = createGroupBox(rightColumn, "Player Settings")
-createToggle(rightGroup1, "Freeze Character")
-createToggle(rightGroup1, "Auto Equip Best Gear")
-createInput(rightGroup1, "Gear check (seconds)", "5")
+local dragging, dragStart, startPos
 
-local rightGroup2 = createGroupBox(rightColumn, "Auto Crafting")
-createToggle(rightGroup2, "Auto Craft Supplies")
-createInput(rightGroup2, "Item to craft", "Legendary Supply ▼")
-createInput(rightGroup2, "Stop at amount", "300")
-createInput(rightGroup2, "Craft interval (seconds)", "1")
-createInput(rightGroup2, "Walk to NPC every (s)", "60")
-createButton(rightGroup2, "Walk to NPC now")
-
-local rightGroup3 = createGroupBox(rightColumn, "Auto Sell")
-createToggle(rightGroup3, "Auto Sell Items")
-createInput(rightGroup3, "Rarities to sell", "-- ▼")
-createToggle(rightGroup3, "Keep specifics")
-createInput(rightGroup3, "Stop at Currency", "1000000")
-
--- ==========================================
--- MOBILE DRAG & LOCK FUNCTIONALITY
--- ==========================================
-local dragging, dragInput, dragStart, startPos
-local isLocked = false
-
-lockBtn.Activated:Connect(function()
-    isLocked = not isLocked
-    lockBtn.Image = isLocked and ICONS.Lock or ICONS.Unlock
-    lockBtn.ImageColor3 = isLocked and OutlineCyan or TextWhite
-end)
-
-topBar.InputBegan:Connect(function(input)
-    if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not isLocked then
+Main.InputBegan:Connect(function(input)
+    if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not IsLocked then
         dragging = true
         dragStart = input.Position
-        startPos = mainFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-topBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
+        startPos = Main.Position
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging and not isLocked then
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(
-            startPos.X.Scale, startPos.X.Offset + delta.X, 
-            startPos.Y.Scale, startPos.Y.Offset + delta.Y
-        )
+        Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
     end
 end)
