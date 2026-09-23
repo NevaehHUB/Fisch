@@ -1,10 +1,18 @@
 -- Execute this in your Roblox executor
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
+
+-- Check if the player is on a mobile/touch device
+local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+
 local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
 
--- Create the main window (Scaled down for mobile/Android screens)
+-- Create the main window (Compact size for mobile/Android)
 local Window = MacLib:Window({
     Title = "Power",
-    Subtitle = "i love naughty things",
+    Subtitle = "I love naughty things",
     Size = UDim2.fromOffset(480, 280),
     DragStyle = 1,
     AcrylicBlur = true,
@@ -85,6 +93,43 @@ PlayerMain:Toggle({
         print("Freeze Character toggled:", Value)
     end
 })
+
+-- 5. Mobile Floating Toggle Button (ONLY for Mobile/Android users using your link)
+if isMobile then
+    task.spawn(function()
+        pcall(function()
+            local screenGui = Instance.new("ScreenGui")
+            screenGui.Name = "PowerMobileToggle"
+            screenGui.ResetOnSpawn = false
+            screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+            
+            local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:FindFirstChildOfClass("PlayerGui")
+            screenGui.Parent = parent
+
+            local imageButton = Instance.new("ImageButton")
+            imageButton.Name = "ToggleButton"
+            imageButton.Size = UDim2.new(0, 50, 0, 50)
+            imageButton.Position = UDim2.new(0, 20, 0.5, -25)
+            imageButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            imageButton.BorderSizePixel = 0
+            imageButton.Image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJX2VMQVfhhlz768cP2LOCNukvXQTHB1mp8o-sIlS8dzqng1MT7OZVuvjN&s=10"
+            imageButton.Draggable = true
+            imageButton.Parent = screenGui
+
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(1, 0)
+            corner.Parent = imageButton
+
+            local isOpen = true
+            imageButton.MouseButton1Click:Connect(function()
+                isOpen = not isOpen
+                if Window and Window.Main then
+                    Window.Main.Visible = isOpen
+                end
+            end)
+        end)
+    end)
+end
 
 -- Universal execution notification
 Window:Notify({
