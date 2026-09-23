@@ -1,7 +1,10 @@
+-- Execute this in your Roblox executor
+local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
+
 -- Create the main window (Scaled down for mobile/Android screens)
 local Window = MacLib:Window({
     Title = "Power",
-    Subtitle = "I'm scared of naughty things - Power",
+    Subtitle = "i love naughty things",
     Size = UDim2.fromOffset(480, 280),
     DragStyle = 1,
     AcrylicBlur = true,
@@ -86,6 +89,6 @@ PlayerMain:Toggle({
 -- Universal execution notification
 Window:Notify({
     Title = "Power",
-    Description = "Thanks for executing daddy",
+    Description = "Thanks for executing Daddy",
     Lifetime = 5
 })
