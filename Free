@@ -4,7 +4,7 @@ local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/re
 -- Create the main window
 local Window = MacLib:Window({
     Title = "Power",
-    Subtitle = "Uwu Denji",
+    Subtitle = "I'm scared of naughty things - Power",
     Size = UDim2.fromOffset(800, 500),
     DragStyle = 1,
     AcrylicBlur = true, -- Enables the frosted glass Mac look
