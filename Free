@@ -1,22 +1,19 @@
--- Execute this in Volt Executor
-local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
-
--- Create the main window
+-- Create the main window (Scaled down for mobile/Android screens)
 local Window = MacLib:Window({
     Title = "Power",
     Subtitle = "I'm scared of naughty things - Power",
-    Size = UDim2.fromOffset(800, 500),
+    Size = UDim2.fromOffset(480, 280),
     DragStyle = 1,
-    AcrylicBlur = true, -- Enables the frosted glass Mac look
+    AcrylicBlur = true,
 })
 
 local TabGroup = Window:TabGroup()
 
 -- 1. Create Tabs
 local FishingTab = TabGroup:Tab({ Name = "Fishing", Image = "rbxassetid://10734950309" })
-local PlayerTab = TabGroup:Tab({ Name = "Player Settings", Image = "rbxassetid://10734950309" })
+local PlayerTab = TabGroup:Tab({ Name = "Player", Image = "rbxassetid://10734950309" })
 
--- 2. Create Sections inside the Fishing Tab (Left and Right columns)
+-- 2. Create Sections inside the Fishing Tab
 local FishingMain = FishingTab:Section({ Side = "Left" })
 local FishingSettings = FishingTab:Section({ Side = "Right" })
 
@@ -86,9 +83,9 @@ PlayerMain:Toggle({
     end
 })
 
--- Notify the user that the UI has successfully injected
+-- Universal execution notification
 Window:Notify({
-    Title = "Power Loaded",
-    Description = "Successfully executed via Volt Executor.",
+    Title = "Power",
+    Description = "Thanks for executing daddy",
     Lifetime = 5
 })
