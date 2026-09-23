@@ -1,398 +1,94 @@
--- ==========================================
--- SETUP & CLEANUP
--- ==========================================
-local CoreGui = game:GetService("CoreGui")
-local UserInputService = game:GetService("UserInputService")
+-- Execute this in Volt Executor
+local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
 
-if CoreGui:FindFirstChild("ClimaSimpleGUI") then
-    CoreGui.ClimaSimpleGUI:Destroy()
-end
+-- Create the main window
+local Window = MacLib:Window({
+    Title = "Power",
+    Subtitle = "Volt Hub",
+    Size = UDim2.fromOffset(800, 500),
+    DragStyle = 1,
+    AcrylicBlur = true, -- Enables the frosted glass Mac look
+})
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ClimaSimpleGUI"
-ScreenGui.Parent = CoreGui
-ScreenGui.ResetOnSpawn = false
+local TabGroup = Window:TabGroup()
 
--- Theme Colors (Cyan/Blue)
-local Cyan = Color3.fromRGB(0, 200, 255)
-local DarkBg = Color3.fromRGB(18, 18, 18)
-local SectionBg = Color3.fromRGB(26, 26, 26)
-local TextWhite = Color3.fromRGB(230, 230, 230)
+-- 1. Create Tabs
+local FishingTab = TabGroup:Tab({ Name = "Fishing", Image = "rbxassetid://10734950309" })
+local PlayerTab = TabGroup:Tab({ Name = "Player Settings", Image = "rbxassetid://10734950309" })
 
--- ==========================================
--- FLOATING TOGGLE BUTTON (FOR MOBILE)
--- ==========================================
-local OpenBtn = Instance.new("TextButton")
-OpenBtn.Size = UDim2.new(0, 60, 0, 30)
-OpenBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
-OpenBtn.BackgroundColor3 = DarkBg
-OpenBtn.Text = "Clima"
-OpenBtn.TextColor3 = Cyan
-OpenBtn.Font = Enum.Font.Code
-OpenBtn.TextSize = 14
-OpenBtn.Parent = ScreenGui
+-- 2. Create Sections inside the Fishing Tab (Left and Right columns)
+local FishingMain = FishingTab:Section({ Side = "Left" })
+local FishingSettings = FishingTab:Section({ Side = "Right" })
 
-local OpenStroke = Instance.new("UIStroke")
-OpenStroke.Color = Cyan
-OpenStroke.Thickness = 1.5
-OpenStroke.Parent = OpenBtn
+-- 3. Add Groups/Headers and Elements (Toggles & Inputs)
+FishingMain:Header({ Name = "Fishing Automation" })
 
--- ==========================================
--- MAIN WINDOW (EXACT COMPACT SIZE FROM IMAGE)
--- ==========================================
-local Main = Instance.new("Frame")
-Main.Name = "Main"
-Main.Size = UDim2.new(0, 510, 0, 440) -- Exact square/compact ratio like screenshot
-Main.Position = UDim2.new(0.5, -255, 0.5, -220)
-Main.BackgroundColor3 = DarkBg
-Main.BorderSizePixel = 0
-Main.Parent = ScreenGui
-
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = Cyan
-MainStroke.Thickness = 1.5
-MainStroke.Parent = Main
-
-OpenBtn.MouseButton1Click:Connect(function()
-    Main.Visible = not Main.Visible
-end)
-
--- Top Title Bar
-local Title = Instance.new("TextLabel")
-Title.Text = " Feral   .gg/feraltoogood"
-Title.Size = UDim2.new(0.7, 0, 0, 25)
-Title.BackgroundTransparency = 1
-Title.TextColor3 = TextWhite
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Font = Enum.Font.Code
-Title.TextSize = 13
-Title.Parent = Main
-
--- Lock Icon/Button
-local LockBtn = Instance.new("TextButton")
-LockBtn.Size = UDim2.new(0, 25, 0, 25)
-LockBtn.Position = UDim2.new(1, -30, 0, 0)
-LockBtn.BackgroundTransparency = 1
-LockBtn.Text = "🔓"
-LockBtn.TextSize = 14
-LockBtn.Parent = Main
-
-local IsLocked = false
-LockBtn.MouseButton1Click:Connect(function()
-    IsLocked = not IsLocked
-    LockBtn.Text = IsLocked and "🔒" or "🔓"
-end)
-
--- ==========================================
--- TABS CONTAINER
--- ==========================================
-local TabBar = Instance.new("Frame")
-TabBar.Size = UDim2.new(1, -20, 0, 25)
-TabBar.Position = UDim2.new(0, 10, 0, 25)
-TabBar.BackgroundTransparency = 1
-TabBar.Parent = Main
-
-local TabLayout = Instance.new("UIListLayout")
-TabLayout.FillDirection = Enum.FillDirection.Horizontal
-TabLayout.Padding = UDim.new(0, 12)
-TabLayout.Parent = TabBar
-
-local TopLine = Instance.new("Frame")
-TopLine.Size = UDim2.new(1, -20, 0, 1)
-TopLine.Position = UDim2.new(0, 10, 0, 52)
-TopLine.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-TopLine.BorderSizePixel = 0
-TopLine.Parent = Main
-
-local PageContainer = Instance.new("Frame")
-PageContainer.Size = UDim2.new(1, -20, 1, -60)
-PageContainer.Position = UDim2.new(0, 10, 0, 55)
-PageContainer.BackgroundTransparency = 1
-PageContainer.Parent = Main
-
--- ==========================================
--- EASY HELPER FUNCTIONS (FOR EDITING)
--- ==========================================
-local AllTabs = {}
-
-function CreateTab(tabName, isDefault)
-    -- 1. Create Tab Button
-    local TabBtn = Instance.new("TextButton")
-    TabBtn.Text = tabName
-    TabBtn.Size = UDim2.new(0, 0, 1, 0)
-    TabBtn.AutomaticSize = Enum.AutomaticSize.X
-    TabBtn.BackgroundTransparency = 1
-    TabBtn.TextColor3 = isDefault and Cyan or Color3.fromRGB(130, 130, 130)
-    TabBtn.Font = Enum.Font.Code
-    TabBtn.TextSize = 13
-    TabBtn.Parent = TabBar
-
-    -- 2. Create Page Content (Scrolling)
-    local Page = Instance.new("ScrollingFrame")
-    Page.Size = UDim2.new(1, 0, 1, 0)
-    Page.BackgroundTransparency = 1
-    Page.BorderSizePixel = 0
-    Page.ScrollBarThickness = 3
-    Page.ScrollBarImageColor3 = Cyan
-    Page.Visible = isDefault or false
-    Page.CanvasSize = UDim2.new(0, 0, 0, 0)
-    Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    Page.Parent = PageContainer
-
-    -- Columns inside Page
-    local LeftCol = Instance.new("Frame")
-    LeftCol.Size = UDim2.new(0.49, 0, 0, 0)
-    LeftCol.AutomaticSize = Enum.AutomaticSize.Y
-    LeftCol.BackgroundTransparency = 1
-    LeftCol.Parent = Page
-
-    local RightCol = Instance.new("Frame")
-    RightCol.Size = UDim2.new(0.49, 0, 0, 0)
-    RightCol.Position = UDim2.new(0.51, 0, 0, 0)
-    RightCol.AutomaticSize = Enum.AutomaticSize.Y
-    RightCol.BackgroundTransparency = 1
-    RightCol.Parent = Page
-
-    local LLayout = Instance.new("UIListLayout")
-    LLayout.Padding = UDim.new(0, 8)
-    LLayout.Parent = LeftCol
-
-    local RLayout = Instance.new("UIListLayout")
-    RLayout.Padding = UDim.new(0, 8)
-    RLayout.Parent = RightCol
-
-    -- Tab Click Switcher
-    table.insert(AllTabs, {Btn = TabBtn, Page = Page})
-    TabBtn.MouseButton1Click:Connect(function()
-        for _, t in pairs(AllTabs) do
-            t.Page.Visible = false
-            t.Btn.TextColor3 = Color3.fromRGB(130, 130, 130)
-        end
-        Page.Visible = true
-        TabBtn.TextColor3 = Cyan
-    end)
-
-    return LeftCol, RightCol
-end
-
-function CreateSection(column, title)
-    local Box = Instance.new("Frame")
-    Box.Size = UDim2.new(1, 0, 0, 0)
-    Box.AutomaticSize = Enum.AutomaticSize.Y
-    Box.BackgroundColor3 = SectionBg
-    Box.BorderSizePixel = 0
-    Box.Parent = column
-
-    local Stroke = Instance.new("UIStroke")
-    Stroke.Color = Cyan
-    Stroke.Thickness = 1
-    Stroke.Parent = Box
-
-    local Header = Instance.new("TextLabel")
-    Header.Text = " " .. title
-    Header.Size = UDim2.new(1, 0, 0, 20)
-    Header.TextColor3 = TextWhite
-    Header.Font = Enum.Font.Code
-    Header.TextSize = 13
-    Header.TextXAlignment = Enum.TextXAlignment.Left
-    Header.BackgroundTransparency = 1
-    Header.Parent = Box
-
-    local Divider = Instance.new("Frame")
-    Divider.Size = UDim2.new(1, 0, 0, 1)
-    Divider.Position = UDim2.new(0, 0, 0, 20)
-    Divider.BackgroundColor3 = Cyan
-    Divider.BorderSizePixel = 0
-    Divider.Parent = Box
-
-    local Content = Instance.new("Frame")
-    Content.Position = UDim2.new(0, 6, 0, 24)
-    Content.Size = UDim2.new(1, -12, 0, 0)
-    Content.AutomaticSize = Enum.AutomaticSize.Y
-    Content.BackgroundTransparency = 1
-    Content.Parent = Box
-
-    local Layout = Instance.new("UIListLayout")
-    Layout.Padding = UDim.new(0, 5)
-    Layout.Parent = Content
-
-    local Pad = Instance.new("UIPadding")
-    Pad.PaddingBottom = UDim.new(0, 8)
-    Pad.Parent = Content
-
-    return Content
-end
-
-function CreateToggle(section, text, callback)
-    local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(1, 0, 0, 18)
-    Btn.BackgroundTransparency = 1
-    Btn.Text = ""
-    Btn.Parent = section
-
-    local Box = Instance.new("Frame")
-    Box.Size = UDim2.new(0, 12, 0, 12)
-    Box.Position = UDim2.new(0, 0, 0.5, -6)
-    Box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Box.BorderSizePixel = 0
-    Box.Parent = Btn
-
-    local Check = Instance.new("Frame")
-    Check.Size = UDim2.new(1, -4, 1, -4)
-    Check.Position = UDim2.new(0, 2, 0, 2)
-    Check.BackgroundColor3 = Cyan
-    Check.BorderSizePixel = 0
-    Check.Visible = false
-    Check.Parent = Box
-
-    local Label = Instance.new("TextLabel")
-    Label.Text = text
-    Label.Size = UDim2.new(1, -20, 1, 0)
-    Label.Position = UDim2.new(0, 20, 0, 0)
-    Label.TextColor3 = TextWhite
-    Label.Font = Enum.Font.Code
-    Label.TextSize = 12
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.BackgroundTransparency = 1
-    Label.Parent = Btn
-
-    local State = false
-    Btn.MouseButton1Click:Connect(function()
-        State = not State
-        Check.Visible = State
-        if callback then callback(State) end
-    end)
-end
-
-function CreateInput(section, titleText, defaultValue)
-    local Container = Instance.new("Frame")
-    Container.Size = UDim2.new(1, 0, 0, 34)
-    Container.BackgroundTransparency = 1
-    Container.Parent = section
-
-    local Label = Instance.new("TextLabel")
-    Label.Text = titleText
-    Label.Size = UDim2.new(1, 0, 0, 14)
-    Label.TextColor3 = Color3.fromRGB(170, 170, 170)
-    Label.Font = Enum.Font.Code
-    Label.TextSize = 11
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.BackgroundTransparency = 1
-    Label.Parent = Container
-
-    local Box = Instance.new("TextBox")
-    Box.Size = UDim2.new(1, 0, 0, 18)
-    Box.Position = UDim2.new(0, 0, 0, 15)
-    Box.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    Box.BorderSizePixel = 0
-    Box.Text = " " .. defaultValue
-    Box.TextColor3 = TextWhite
-    Box.Font = Enum.Font.Code
-    Box.TextSize = 12
-    Box.TextXAlignment = Enum.TextXAlignment.Left
-    Box.ClearTextOnFocus = false
-    Box.Parent = Container
-end
-
-function CreateLabel(section, text)
-    local Label = Instance.new("TextLabel")
-    Label.Text = text
-    Label.Size = UDim2.new(1, 0, 0, 15)
-    Label.TextColor3 = TextWhite
-    Label.Font = Enum.Font.Code
-    Label.TextSize = 12
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.BackgroundTransparency = 1
-    Label.Parent = section
-end
-
-function CreateButton(section, text, callback)
-    local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(1, 0, 0, 20)
-    Btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Btn.Text = text
-    Btn.TextColor3 = TextWhite
-    Btn.Font = Enum.Font.Code
-    Btn.TextSize = 12
-    Btn.BorderSizePixel = 0
-    Btn.Parent = section
-    
-    if callback then
-        Btn.MouseButton1Click:Connect(callback)
+FishingMain:Toggle({
+    Name = "Auto Fish",
+    Description = "Fishes for you",
+    Default = false,
+    Callback = function(Value)
+        print("Auto Fish toggled:", Value)
     end
-end
+})
 
--- ==========================================
--- BUILD PAGES & SECTIONS (MATCHING YOUR IMAGE)
--- ==========================================
-
--- 1. Create Clickable Tabs
-local FishingLeft, FishingRight = CreateTab("Fishing", true) -- Default selected
-local Sea1Left, Sea1Right       = CreateTab("Sea 1", false)
-local Sea2Left, Sea2Right       = CreateTab("Sea 2", false)
-local OtherLeft, OtherRight     = CreateTab("Other", false)
-local SettingsLeft, SettingsRight = CreateTab("UI Settings", false)
-
--- --- FISHING TAB (LEFT COLUMN) ---
-local SecFishing = CreateSection(FishingLeft, "Fishing")
-CreateToggle(SecFishing, "Auto Fish")
-CreateToggle(SecFishing, "Auto Cast Rod")
-CreateToggle(SecFishing, "Auto Buy Bait")
-CreateInput(SecFishing, "Amount to buy", "3")
-CreateInput(SecFishing, "Interval (seconds)", "5")
-
-local SecHowTo = CreateSection(FishingLeft, "How to use")
-CreateLabel(SecHowTo, "1. Buy rod at Shells Town")
-CreateLabel(SecHowTo, "2. Buy Bait")
-CreateLabel(SecHowTo, "3. Activate Auto Fish/Auto Cast")
-CreateLabel(SecHowTo, "4. Put your Cursor on the Water")
-CreateLabel(SecHowTo, "5. Enjoy")
-
-local SecFruits = CreateSection(FishingLeft, "Auto Store Fruits")
-CreateToggle(SecFruits, "Auto Store Fruits")
-
--- --- FISHING TAB (RIGHT COLUMN) ---
-local SecPlayer = CreateSection(FishingRight, "Player Settings")
-CreateToggle(SecPlayer, "Freeze Character")
-CreateToggle(SecPlayer, "Auto Equip Best Title")
-CreateInput(SecPlayer, "Title check (seconds)", "5")
-
-local SecCraft = CreateSection(FishingRight, "Auto Craft Fishing Bait")
-CreateToggle(SecCraft, "Auto Craft Fishing Bait")
-CreateInput(SecCraft, "Bait to craft", "Legendary Fish Bait")
-CreateInput(SecCraft, "Stop at amount", "300")
-CreateInput(SecCraft, "Craft interval (seconds)", "1")
-CreateInput(SecCraft, "Walk to craftsman every (s)", "60")
-CreateButton(SecCraft, "Walk to Craftsman now")
-
-local SecSell = CreateSection(FishingRight, "Auto Sell Fish")
-CreateToggle(SecSell, "Auto Sell Fish")
-CreateInput(SecSell, "Rarities to sell", "--")
-CreateToggle(SecSell, "Keep fish for bait")
-CreateInput(SecSell, "Stop at Peli", "1000000")
-
--- ==========================================
--- DRAGGING FUNCTION (PC & MOBILE TOUCH)
--- ==========================================
-local dragging, dragStart, startPos
-
-Main.InputBegan:Connect(function(input)
-    if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not IsLocked then
-        dragging = true
-        dragStart = input.Position
-        startPos = Main.Position
+FishingMain:Toggle({
+    Name = "Auto Cast Rod",
+    Description = "Casts for you",
+    Default = false,
+    Callback = function(Value)
+        print("Auto Cast Rod toggled:", Value)
     end
-end)
+})
 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+FishingMain:Toggle({
+    Name = "Auto Buy Bait",
+    Description = "Buys bait for you",
+    Default = false,
+    Callback = function(Value)
+        print("Auto Buy Bait toggled:", Value)
     end
-end)
+})
 
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
+FishingSettings:Header({ Name = "Configuration" })
+
+FishingSettings:Input({
+    Name = "Amount to buy",
+    Description = "How much to buy",
+    Placeholder = "3",
+    Numeric = true,
+    Callback = function(Value)
+        print("Amount set to:", Value)
     end
-end)
+})
+
+FishingSettings:Input({
+    Name = "Interval (seconds)",
+    Description = "How often",
+    Placeholder = "5",
+    Numeric = true,
+    Callback = function(Value)
+        print("Interval set to:", Value)
+    end
+})
+
+-- 4. Set up the Player Settings Tab
+local PlayerMain = PlayerTab:Section({ Side = "Left" })
+
+PlayerMain:Header({ Name = "Movement Options" })
+
+PlayerMain:Toggle({
+    Name = "Freeze Character",
+    Description = "Stops you from moving",
+    Default = false,
+    Callback = function(Value)
+        print("Freeze Character toggled:", Value)
+    end
+})
+
+-- Notify the user that the UI has successfully injected
+Window:Notify({
+    Title = "Power Loaded",
+    Description = "Successfully executed via Volt Executor.",
+    Lifetime = 5
+})
