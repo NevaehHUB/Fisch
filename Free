@@ -7,13 +7,16 @@ local LocalPlayer = Players.LocalPlayer
 -- Check if the player is on a mobile/touch device
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
+-- Dynamic sizing: Larger for PC, compact for Mobile
+local windowSize = isMobile and UDim2.fromOffset(480, 280) or UDim2.fromOffset(800, 500)
+
 local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
 
--- Create the main window (Compact size for mobile/Android)
+-- Create the main window
 local Window = MacLib:Window({
     Title = "Power",
     Subtitle = "I love naughty things",
-    Size = UDim2.fromOffset(480, 280),
+    Size = windowSize,
     DragStyle = 1,
     AcrylicBlur = true,
 })
@@ -94,7 +97,7 @@ PlayerMain:Toggle({
     end
 })
 
--- 5. Mobile Floating Toggle Button (ONLY for Mobile/Android users using your link)
+-- 5. Mobile Floating Toggle Button (ONLY for Mobile/Android users)
 if isMobile then
     task.spawn(function()
         pcall(function()
@@ -108,11 +111,10 @@ if isMobile then
 
             local imageButton = Instance.new("ImageButton")
             imageButton.Name = "ToggleButton"
-            imageButton.Size = UDim2.new(0, 50, 0, 50)
-            imageButton.Position = UDim2.new(0, 20, 0.5, -25)
+            imageButton.Size = UDim2.new(0, 55, 0, 55)
+            imageButton.Position = UDim2.new(0, 20, 0.5, -27)
             imageButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             imageButton.BorderSizePixel = 0
-            imageButton.Image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJX2VMQVfhhlz768cP2LOCNukvXQTHB1mp8o-sIlS8dzqng1MT7OZVuvjN&s=10"
             imageButton.Draggable = true
             imageButton.Parent = screenGui
 
@@ -120,20 +122,55 @@ if isMobile then
             corner.CornerRadius = UDim.new(1, 0)
             corner.Parent = imageButton
 
+            local stroke = Instance.new("UIStroke")
+            stroke.Color = Color3.fromRGB(255, 75, 100) -- Reddish/Pink theme accent
+            stroke.Thickness = 2.5
+            stroke.Parent = imageButton
+
+            -- Download and load image link for mobile executors
+            local imageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJX2VMQVfhhlz768cP2LOCNukvXQTHB1mp8o-sIlS8dzqng1MT7OZVuvjN&s=10"
+            if writefile and (getcustomasset or getsynasset) then
+                local success, data = pcall(function()
+                    return game:HttpGet(imageUrl)
+                end)
+                if success and data then
+                    local filename = "power_icon_" .. math.random(10000, 99999) .. ".png"
+                    writefile(filename, data)
+                    local assetFunc = getcustomasset or getsynasset
+                    pcall(function()
+                        imageButton.Image = assetFunc(filename)
+                    end)
+                end
+            end
+
+            -- Working toggle function that finds and toggles the UI window
             local isOpen = true
             imageButton.MouseButton1Click:Connect(function()
                 isOpen = not isOpen
-                if Window and Window.Main then
-                    Window.Main.Visible = isOpen
+                for _, gui in ipairs({CoreGui, LocalPlayer:FindFirstChild("PlayerGui")}) do
+                    if gui then
+                        for _, desc in ipairs(gui:GetDescendants()) do
+                            if desc:IsA("TextLabel") and desc.Text == "Power" then
+                                local parentFrame = desc.Parent
+                                while parentFrame and parentFrame ~= gui do
+                                    if parentFrame:IsA("Frame") and parentFrame.Size.X.Offset > 300 then
+                                        parentFrame.Visible = isOpen
+                                        break
+                                    end
+                                    parentFrame = parentFrame.Parent
+                                end
+                            end
+                        end
+                    end
                 end
             end)
         end)
     end)
 end
 
--- Universal execution notification
+-- Execution notification
 Window:Notify({
     Title = "Power",
     Description = "Thanks for executing Daddy",
-    Lifetime = 5
+    Lifetime = 10
 })
