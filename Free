@@ -3,6 +3,8 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Check if the player is on a mobile/touch device
@@ -23,7 +25,7 @@ introGui.Parent = parentGui
 -- Fullscreen background
 local bgFrame = Instance.new("Frame")
 bgFrame.Size = UDim2.new(1, 0, 1, 0)
-bgFrame.BackgroundColor3 = Color3.fromRGB(18, 10, 14) -- Deep dark reddish-pink tint
+bgFrame.BackgroundColor3 = Color3.fromRGB(18, 10, 14)
 bgFrame.BackgroundTransparency = 0
 bgFrame.BorderSizePixel = 0
 bgFrame.Parent = introGui
@@ -35,12 +37,12 @@ container.Position = UDim2.new(0.5, -300, 0.5, -100)
 container.BackgroundTransparency = 1
 container.Parent = bgFrame
 
--- Power's Iconic Horns (Chainsaw Man style - stylized curved red/pink peaks)
+-- Power's Iconic Horns (Chainsaw Man style)
 local leftHorn = Instance.new("TextLabel")
 leftHorn.Size = UDim2.new(0, 80, 0, 80)
 leftHorn.Position = UDim2.new(0.5, -95, 0, -30)
 leftHorn.BackgroundTransparency = 1
-leftHorn.Text = "╭∩╮" -- Stylized curved horn representation
+leftHorn.Text = "╭∩╮"
 leftHorn.TextColor3 = Color3.fromRGB(255, 45, 90)
 leftHorn.TextSize = 45
 leftHorn.Font = Enum.Font.FredokaOne
@@ -60,7 +62,7 @@ rightHorn.TextTransparency = 1
 rightHorn.Rotation = 15
 rightHorn.Parent = container
 
--- Intro Text: "thanks for choosing power daddy 🍑💋"
+-- Intro Text with Peach & Kiss Emojis
 local introText = Instance.new("TextLabel")
 introText.Size = UDim2.new(1, 0, 0, 60)
 introText.Position = UDim2.new(0, 0, 0.5, 10)
@@ -80,14 +82,14 @@ textGradient.Color = ColorSequence.new({
 })
 textGradient.Parent = introText
 
--- Play Intro Pop/Fade Animations
+-- Play Intro Animations
 task.spawn(function()
     TweenService:Create(leftHorn, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.5, -95, 0, -55)}):Play()
     TweenService:Create(rightHorn, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.5, 15, 0, -55)}):Play()
     TweenService:Create(introText, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
 end)
 
--- Wait for script to load (2.5 seconds)
+-- Wait for script to load
 task.wait(2.5)
 
 -- Fade out Intro smoothly
@@ -101,13 +103,75 @@ task.spawn(function()
     introGui:Destroy()
 end)
 
+-- ==================== FISCH AUTO FISH LOGIC ====================
+local autoFishRunning = false
+
+task.spawn(function()
+    while true() do
+        if autoFishRunning then
+            pcall(function()
+                local char = LocalPlayer.Character
+                local humanoidRootPart = char and char:FindFirstChild("HumanoidRootPart")
+                local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+                
+                if char and playerGui then
+                    -- 1. Equip rod from Hotbar Slot 1 if not already equipped
+                    local equippedTool = char:FindFirstChildOfClass("Tool")
+                    if not equippedTool then
+                        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.One, false, game)
+                        task.wait(0.1)
+                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.One, false, game)
+                        task.wait(0.5)
+                        equippedTool = char:FindFirstChildOfClass("Tool")
+                    end
+                    
+                    if equippedTool then
+                        -- 2. Check if casting or reeling is needed
+                        local activeGui = playerGui:FindFirstChild("reel") or playerGui:FindFirstChild("bar") or playerGui:FindFirstChild("shake")
+                        
+                        -- If minigame/bar is active, handle it ("follow the fish ui on the bar")
+                        local reelGui = playerGui:FindFirstChild("reel")
+                        if reelGui and reelGui.Enabled then
+                            local bar = reelGui:FindFirstChild("bar", true)
+                            local fish = bar and bar:FindFirstChild("fish", true)
+                            local playerBar = bar and bar:FindFirstChild("playerbar", true)
+                            
+                            if fish and playerBar then
+                                -- Align player bar position to fish position automatically
+                                playerBar.Position = fish.Position
+                            end
+                        else
+                            -- Check if shake button/ui is active ("click shake until about to catch fish")
+                            local shakeGui = playerGui:FindFirstChild("shake")
+                            if shakeGui and shakeGui.Enabled then
+                                local safeButton = shakeGui:FindFirstChild("safezone", true) or shakeGui:FindFirstChild("button", true)
+                                if safeButton then
+                                    -- Simulate click on shake button
+                                    local absPos = safeButton.AbsolutePosition
+                                    local absSize = safeButton.AbsoluteSize
+                                    VirtualInputManager:SendMouseButtonEvent(absPos.X + absSize.X/2, absPos.Y + absSize.Y/2, 0, true, game, 1)
+                                    VirtualInputManager:SendMouseButtonEvent(absPos.X + absSize.X/2, absPos.Y + absSize.Y/2, 0, false, game, 1)
+                                end
+                            else
+                                -- Cast the rod if nothing is active
+                                equippedTool:Activate()
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+        task.wait(0.1)
+    end
+end)
+
 -- ==================== MAIN MACLIB UI ====================
 local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
 
 -- Create the main window (Larger for PC, compact for mobile)
 local Window = MacLib:Window({
     Title = "Power",
-    Subtitle = "i love doing naughty things",
+    Subtitle = "Im so naughty",
     Size = windowSize,
     DragStyle = 1,
     AcrylicBlur = true,
@@ -128,9 +192,10 @@ FishingMain:Header({ Name = "Fishing Automation" })
 
 FishingMain:Toggle({
     Name = "Auto Fish",
-    Description = "Fishes for you",
+    Description = "Equips rod, casts, shakes, and tracks bar for Fisch",
     Default = false,
     Callback = function(Value)
+        autoFishRunning = Value
         print("Auto Fish toggled:", Value)
     end
 })
@@ -264,5 +329,5 @@ end
 Window:Notify({
     Title = "Power",
     Description = "Thanks for executing daddy",
-    Lifetime = 3
+    Lifetime = 5
 })
