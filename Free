@@ -11,7 +11,7 @@ local isMobile = UserInputService.TouchEnabled and not UserInputService.Keyboard
 -- Dynamic sizing: Larger for PC (800x500), compact for Mobile (480x280)
 local windowSize = isMobile and UDim2.fromOffset(480, 280) or UDim2.fromOffset(800, 500)
 
--- ==================== INTRO / LOADING SCREEN ====================
+-- ==================== FULLSCREEN INTRO / LOADING SCREEN ====================
 local introGui = Instance.new("ScreenGui")
 introGui.Name = "PowerIntro"
 introGui.ResetOnSpawn = false
@@ -20,78 +20,82 @@ introGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 local parentGui = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:FindFirstChildOfClass("PlayerGui")
 introGui.Parent = parentGui
 
+-- Fullscreen background
 local bgFrame = Instance.new("Frame")
 bgFrame.Size = UDim2.new(1, 0, 1, 0)
-bgFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 15)
+bgFrame.BackgroundColor3 = Color3.fromRGB(18, 10, 14) -- Deep dark reddish-pink tint
 bgFrame.BackgroundTransparency = 0
 bgFrame.BorderSizePixel = 0
 bgFrame.Parent = introGui
 
+-- Center container for horns and text
 local container = Instance.new("Frame")
-container.Size = UDim2.new(0, 450, 0, 150)
-container.Position = UDim2.new(0.5, -225, 0.5, -75)
+container.Size = UDim2.new(0, 600, 0, 200)
+container.Position = UDim2.new(0.5, -300, 0.5, -100)
 container.BackgroundTransparency = 1
 container.Parent = bgFrame
 
--- Left Horn
+-- Power's Iconic Horns (Chainsaw Man style - stylized curved red/pink peaks)
 local leftHorn = Instance.new("TextLabel")
-leftHorn.Size = UDim2.new(0, 60, 0, 60)
-leftHorn.Position = UDim2.new(0.5, -70, 0, -20)
+leftHorn.Size = UDim2.new(0, 80, 0, 80)
+leftHorn.Position = UDim2.new(0.5, -95, 0, -30)
 leftHorn.BackgroundTransparency = 1
-leftHorn.Text = "/\\"
-leftHorn.TextColor3 = Color3.fromRGB(255, 40, 85)
-leftHorn.TextSize = 38
+leftHorn.Text = "╭∩╮" -- Stylized curved horn representation
+leftHorn.TextColor3 = Color3.fromRGB(255, 45, 90)
+leftHorn.TextSize = 45
 leftHorn.Font = Enum.Font.FredokaOne
 leftHorn.TextTransparency = 1
+leftHorn.Rotation = -15
 leftHorn.Parent = container
 
--- Right Horn
 local rightHorn = Instance.new("TextLabel")
-rightHorn.Size = UDim2.new(0, 60, 0, 60)
-rightHorn.Position = UDim2.new(0.5, 10, 0, -20)
+rightHorn.Size = UDim2.new(0, 80, 0, 80)
+rightHorn.Position = UDim2.new(0.5, 15, 0, -30)
 rightHorn.BackgroundTransparency = 1
-rightHorn.Text = "/\\"
-rightHorn.TextColor3 = Color3.fromRGB(255, 90, 120)
-rightHorn.TextSize = 38
+rightHorn.Text = "╭∩╮"
+rightHorn.TextColor3 = Color3.fromRGB(255, 90, 130)
+rightHorn.TextSize = 45
 rightHorn.Font = Enum.Font.FredokaOne
 rightHorn.TextTransparency = 1
+rightHorn.Rotation = 15
 rightHorn.Parent = container
 
--- Intro Text: "thanks for choosing power daddy"
+-- Intro Text: "thanks for choosing power daddy 🍑💋"
 local introText = Instance.new("TextLabel")
-introText.Size = UDim2.new(1, 0, 0, 50)
-introText.Position = UDim2.new(0, 0, 0.5, -10)
+introText.Size = UDim2.new(1, 0, 0, 60)
+introText.Position = UDim2.new(0, 0, 0.5, 10)
 introText.BackgroundTransparency = 1
-introText.Text = "thanks for choosing power daddy"
+introText.Text = "thanks for choosing power daddy 🍑💋"
 introText.TextColor3 = Color3.fromRGB(255, 50, 90)
-introText.TextSize = 22
+introText.TextSize = 26
 introText.Font = Enum.Font.GothamBold
 introText.TextTransparency = 1
 introText.Parent = container
 
 local textGradient = Instance.new("UIGradient")
 textGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 40, 80)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 140, 165))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 30, 75)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 110, 145)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 40, 90))
 })
 textGradient.Parent = introText
 
 -- Play Intro Pop/Fade Animations
 task.spawn(function()
-    TweenService:Create(leftHorn, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.5, -70, 0, -45)}):Play()
-    TweenService:Create(rightHorn, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.5, 10, 0, -45)}):Play()
-    TweenService:Create(introText, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
+    TweenService:Create(leftHorn, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.5, -95, 0, -55)}):Play()
+    TweenService:Create(rightHorn, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.5, 15, 0, -55)}):Play()
+    TweenService:Create(introText, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
 end)
 
--- Wait for script to load (simulating 2-3 seconds load time)
+-- Wait for script to load (2.5 seconds)
 task.wait(2.5)
 
--- Fade out Intro
+-- Fade out Intro smoothly
 task.spawn(function()
-    TweenService:Create(leftHorn, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
-    TweenService:Create(rightHorn, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
-    TweenService:Create(introText, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
-    local bgFade = TweenService:Create(bgFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency = 1})
+    TweenService:Create(leftHorn, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
+    TweenService:Create(rightHorn, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
+    TweenService:Create(introText, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
+    local bgFade = TweenService:Create(bgFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency = 1})
     bgFade:Play()
     bgFade.Completed:Wait()
     introGui:Destroy()
@@ -100,10 +104,10 @@ end)
 -- ==================== MAIN MACLIB UI ====================
 local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
 
--- Create the main window
+-- Create the main window (Larger for PC, compact for mobile)
 local Window = MacLib:Window({
     Title = "Power",
-    Subtitle = "I love doing naughty things",
+    Subtitle = "i love doing naughty things",
     Size = windowSize,
     DragStyle = 1,
     AcrylicBlur = true,
@@ -215,7 +219,7 @@ if isMobile then
             stroke.Thickness = 2.5
             stroke.Parent = imageButton
 
-            -- Download and load image link for mobile executors
+            -- Load image link for mobile executors
             local imageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJX2VMQVfhhlz768cP2LOCNukvXQTHB1mp8o-sIlS8dzqng1MT7OZVuvjN&s=10"
             if writefile and (getcustomasset or getsynasset) then
                 local success, data = pcall(function()
@@ -259,6 +263,6 @@ end
 -- Universal execution notification
 Window:Notify({
     Title = "Power",
-    Description = "thanks for executing daddy",
-    Lifetime = 5
+    Description = "Thanks for executing daddy",
+    Lifetime = 3
 })
