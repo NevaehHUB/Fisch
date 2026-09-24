@@ -4,96 +4,78 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--- Check if the player is on a mobile/touch device
+-- Check if player is on mobile
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
--- Dynamic sizing: Larger for PC (800x500), compact and small for Mobile (360x220)
-local windowSize = isMobile and UDim2.fromOffset(360, 220) or UDim2.fromOffset(800, 500)
+-- Fixed mobile sizing (larger enough so elements don't get hidden) vs PC sizing
+local windowSize = isMobile and UDim2.fromOffset(450, 280) or UDim2.fromOffset(800, 500)
 
--- ==================== FULLSCREEN INTRO / LOADING SCREEN ====================
-local introGui = Instance.new("ScreenGui")
-introGui.Name = "PowerIntro"
-introGui.ResetOnSpawn = false
-introGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- ==================== FULLSCREEN INTRO ====================
+local successIntro, introErr = pcall(function()
+    local introGui = Instance.new("ScreenGui")
+    introGui.Name = "PowerIntro"
+    introGui.ResetOnSpawn = false
+    introGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    local parentGui = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:FindFirstChildOfClass("PlayerGui")
+    introGui.Parent = parentGui
 
-local parentGui = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:FindFirstChildOfClass("PlayerGui")
-introGui.Parent = parentGui
+    local bgFrame = Instance.new("Frame")
+    bgFrame.Size = UDim2.new(1, 0, 1, 0)
+    bgFrame.BackgroundColor3 = Color3.fromRGB(18, 10, 14)
+    bgFrame.BackgroundTransparency = 0
+    bgFrame.BorderSizePixel = 0
+    bgFrame.Parent = introGui
 
--- Fullscreen background
-local bgFrame = Instance.new("Frame")
-bgFrame.Size = UDim2.new(1, 0, 1, 0)
-bgFrame.BackgroundColor3 = Color3.fromRGB(18, 10, 14)
-bgFrame.BackgroundTransparency = 0
-bgFrame.BorderSizePixel = 0
-bgFrame.Parent = introGui
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(0, 600, 0, 200)
+    container.Position = UDim2.new(0.5, -300, 0.5, -100)
+    container.BackgroundTransparency = 1
+    container.Parent = bgFrame
 
--- Center container for horns and text
-local container = Instance.new("Frame")
-container.Size = UDim2.new(0, 600, 0, 200)
-container.Position = UDim2.new(0.5, -300, 0.5, -100)
-container.BackgroundTransparency = 1
-container.Parent = bgFrame
+    local leftHorn = Instance.new("TextLabel")
+    leftHorn.Size = UDim2.new(0, 80, 0, 80)
+    leftHorn.Position = UDim2.new(0.5, -95, 0, -30)
+    leftHorn.BackgroundTransparency = 1
+    leftHorn.Text = "╭∩╮"
+    leftHorn.TextColor3 = Color3.fromRGB(255, 45, 90)
+    leftHorn.TextSize = 45
+    leftHorn.Font = Enum.Font.FredokaOne
+    leftHorn.TextTransparency = 1
+    leftHorn.Rotation = -15
+    leftHorn.Parent = container
 
--- Power's Iconic Horns (Chainsaw Man style)
-local leftHorn = Instance.new("TextLabel")
-leftHorn.Size = UDim2.new(0, 80, 0, 80)
-leftHorn.Position = UDim2.new(0.5, -95, 0, -30)
-leftHorn.BackgroundTransparency = 1
-leftHorn.Text = "╭∩╮"
-leftHorn.TextColor3 = Color3.fromRGB(255, 45, 90)
-leftHorn.TextSize = 45
-leftHorn.Font = Enum.Font.FredokaOne
-leftHorn.TextTransparency = 1
-leftHorn.Rotation = -15
-leftHorn.Parent = container
+    local rightHorn = Instance.new("TextLabel")
+    rightHorn.Size = UDim2.new(0, 80, 0, 80)
+    rightHorn.Position = UDim2.new(0.5, 15, 0, -30)
+    rightHorn.BackgroundTransparency = 1
+    rightHorn.Text = "╭∩╮"
+    rightHorn.TextColor3 = Color3.fromRGB(255, 90, 130)
+    rightHorn.TextSize = 45
+    rightHorn.Font = Enum.Font.FredokaOne
+    rightHorn.TextTransparency = 1
+    rightHorn.Rotation = 15
+    rightHorn.Parent = container
 
-local rightHorn = Instance.new("TextLabel")
-rightHorn.Size = UDim2.new(0, 80, 0, 80)
-rightHorn.Position = UDim2.new(0.5, 15, 0, -30)
-rightHorn.BackgroundTransparency = 1
-rightHorn.Text = "╭∩╮"
-rightHorn.TextColor3 = Color3.fromRGB(255, 90, 130)
-rightHorn.TextSize = 45
-rightHorn.Font = Enum.Font.FredokaOne
-rightHorn.TextTransparency = 1
-rightHorn.Rotation = 15
-rightHorn.Parent = container
+    local introText = Instance.new("TextLabel")
+    introText.Size = UDim2.new(1, 0, 0, 60)
+    introText.Position = UDim2.new(0, 0, 0.5, 10)
+    introText.BackgroundTransparency = 1
+    introText.Text = "thanks for choosing power daddy 🍑💋"
+    introText.TextColor3 = Color3.fromRGB(255, 50, 90)
+    introText.TextSize = 22
+    introText.Font = Enum.Font.GothamBold
+    introText.TextTransparency = 1
+    introText.Parent = container
 
--- Intro Text with Peach & Kiss Emojis
-local introText = Instance.new("TextLabel")
-introText.Size = UDim2.new(1, 0, 0, 60)
-introText.Position = UDim2.new(0, 0, 0.5, 10)
-introText.BackgroundTransparency = 1
-introText.Text = "thanks for choosing power daddy 🍑💋"
-introText.TextColor3 = Color3.fromRGB(255, 50, 90)
-introText.TextSize = 26
-introText.Font = Enum.Font.GothamBold
-introText.TextTransparency = 1
-introText.Parent = container
-
-local textGradient = Instance.new("UIGradient")
-textGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 30, 75)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 110, 145)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 40, 90))
-})
-textGradient.Parent = introText
-
--- Play Intro Animations
-task.spawn(function()
     TweenService:Create(leftHorn, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.5, -95, 0, -55)}):Play()
     TweenService:Create(rightHorn, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.5, 15, 0, -55)}):Play()
     TweenService:Create(introText, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
-end)
 
--- Wait for script to load
-task.wait(2.5)
+    task.wait(2.5)
 
--- Fade out Intro smoothly
-task.spawn(function()
     TweenService:Create(leftHorn, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
     TweenService:Create(rightHorn, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
     TweenService:Create(introText, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
@@ -103,24 +85,27 @@ task.spawn(function()
     introGui:Destroy()
 end)
 
+if not successIntro then
+    warn("Intro skipped due to error: " + tostring(introErr))
+end
+
 -- ==================== FISCH AUTO FISH LOGIC ====================
 local autoFishRunning = false
 
 task.spawn(function()
-    while true() do
+    while true do
         if autoFishRunning then
             pcall(function()
                 local char = LocalPlayer.Character
                 local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
                 
                 if char and playerGui then
-                    -- 1. Equip rod from Hotbar Slot 1 if not already equipped
                     local equippedTool = char:FindFirstChildOfClass("Tool")
                     if not equippedTool then
                         VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.One, false, game)
-                        task.wait(0.1)
+                        task.wait(0.05)
                         VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.One, false, game)
-                        task.wait(0.5)
+                        task.wait(0.3)
                         equippedTool = char:FindFirstChildOfClass("Tool")
                     end
                     
@@ -156,29 +141,32 @@ task.spawn(function()
     end
 end)
 
--- ==================== MAIN MACLIB UI ====================
-local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
+-- ==================== LOAD MACLIB UI ====================
+local successLib, MacLib = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
+end)
 
--- Create the main window with optimized mobile/PC sizing
+if not successLib or not MacLib then
+    warn("Failed to load MacLib!")
+    return
+end
+
 local Window = MacLib:Window({
     Title = "Power",
-    Subtitle = "Im so naughty",
+    Subtitle = "Hub",
     Size = windowSize,
     DragStyle = 1,
-    AcrylicBlur = true,
+    AcrylicBlur = false, -- Disabled to prevent mobile invisibility bugs
 })
 
 local TabGroup = Window:TabGroup()
 
--- 1. Create Tabs
 local FishingTab = TabGroup:Tab({ Name = "Fishing", Image = "rbxassetid://10734950309" })
 local PlayerTab = TabGroup:Tab({ Name = "Player", Image = "rbxassetid://10734950309" })
 
--- 2. Create Sections inside the Fishing Tab
 local FishingMain = FishingTab:Section({ Side = "Left" })
 local FishingSettings = FishingTab:Section({ Side = "Right" })
 
--- 3. Add Groups/Headers and Elements (Toggles & Inputs)
 FishingMain:Header({ Name = "Fishing Automation" })
 
 FishingMain:Toggle({
@@ -187,7 +175,6 @@ FishingMain:Toggle({
     Default = false,
     Callback = function(Value)
         autoFishRunning = Value
-        print("Auto Fish toggled:", Value)
     end
 })
 
@@ -196,7 +183,6 @@ FishingMain:Toggle({
     Description = "Casts for you",
     Default = false,
     Callback = function(Value)
-        print("Auto Cast Rod toggled:", Value)
     end
 })
 
@@ -205,7 +191,6 @@ FishingMain:Toggle({
     Description = "Buys bait for you",
     Default = false,
     Callback = function(Value)
-        print("Auto Buy Bait toggled:", Value)
     end
 })
 
@@ -217,7 +202,6 @@ FishingSettings:Input({
     Placeholder = "3",
     Numeric = true,
     Callback = function(Value)
-        print("Amount set to:", Value)
     end
 })
 
@@ -227,13 +211,10 @@ FishingSettings:Input({
     Placeholder = "5",
     Numeric = true,
     Callback = function(Value)
-        print("Interval set to:", Value)
     end
 })
 
--- 4. Set up the Player Settings Tab
 local PlayerMain = PlayerTab:Section({ Side = "Left" })
-
 PlayerMain:Header({ Name = "Movement Options" })
 
 PlayerMain:Toggle({
@@ -241,11 +222,10 @@ PlayerMain:Toggle({
     Description = "Stops you from moving",
     Default = false,
     Callback = function(Value)
-        print("Freeze Character toggled:", Value)
     end
 })
 
--- 5. Mobile Floating Toggle Button (ONLY for Mobile/Android users)
+-- ==================== MOBILE TOGGLE BUTTON ====================
 if isMobile then
     task.spawn(function()
         pcall(function()
@@ -275,23 +255,6 @@ if isMobile then
             stroke.Thickness = 2.5
             stroke.Parent = imageButton
 
-            -- Load image link for mobile executors
-            local imageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJX2VMQVfhhlz768cP2LOCNukvXQTHB1mp8o-sIlS8dzqng1MT7OZVuvjN&s=10"
-            if writefile and (getcustomasset or getsynasset) then
-                local success, data = pcall(function()
-                    return game:HttpGet(imageUrl)
-                end)
-                if success and data then
-                    local filename = "power_icon_" .. math.random(10000, 99999) .. ".png"
-                    writefile(filename, data)
-                    local assetFunc = getcustomasset or getsynasset
-                    pcall(function()
-                        imageButton.Image = assetFunc(filename)
-                    end)
-                end
-            end
-
-            -- Toggle function for the mobile button
             local isOpen = true
             imageButton.MouseButton1Click:Connect(function()
                 isOpen = not isOpen
@@ -301,7 +264,7 @@ if isMobile then
                             if desc:IsA("TextLabel") and desc.Text == "Power" then
                                 local parentFrame = desc.Parent
                                 while parentFrame and parentFrame ~= gui do
-                                    if parentFrame:IsA("Frame") and parentFrame.Size.X.Offset > 250 then
+                                    if parentFrame:IsA("Frame") and parentFrame.Size.X.Offset > 200 then
                                         parentFrame.Visible = isOpen
                                         break
                                     end
@@ -316,9 +279,8 @@ if isMobile then
     end)
 end
 
--- Universal execution notification
 Window:Notify({
     Title = "Power",
-    Description = "Thanks for executing daddy",
-    Lifetime = 3
+    Description = "Power has executed",
+    Lifetime = 5
 })
