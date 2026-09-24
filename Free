@@ -1,229 +1,186 @@
--- Execute this in your Roblox executor
-local UserInputService = game:GetService("UserInputService")
+-- ==========================================================
+-- POWER HUB: REBUILT & OPTIMIZED FOR MOBILE + PC
+-- ==========================================================
+
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
 local LocalPlayer = Players.LocalPlayer
-
--- Check if player is on mobile
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
-
--- Sizing: Compact for mobile, spacious for PC
 local windowSize = isMobile and UDim2.fromOffset(450, 280) or UDim2.fromOffset(800, 500)
 
 -- ==================== FULLSCREEN INTRO ====================
-local successIntro, introErr = pcall(function()
-    local introGui = Instance.new("ScreenGui")
-    introGui.Name = "PowerIntro"
-    introGui.ResetOnSpawn = false
-    introGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    local parentGui = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:FindFirstChildOfClass("PlayerGui")
-    introGui.Parent = parentGui
+task.spawn(function()
+    pcall(function()
+        local introGui = Instance.new("ScreenGui")
+        introGui.Name = "PowerIntro"
+        introGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        introGui.Parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:FindFirstChildOfClass("PlayerGui")
 
-    local bgFrame = Instance.new("Frame")
-    bgFrame.Size = UDim2.new(1, 0, 1, 0)
-    bgFrame.BackgroundColor3 = Color3.fromRGB(18, 10, 14)
-    bgFrame.BackgroundTransparency = 0
-    bgFrame.BorderSizePixel = 0
-    bgFrame.Parent = introGui
+        local bgFrame = Instance.new("Frame")
+        bgFrame.Size = UDim2.new(1, 0, 1, 0)
+        bgFrame.BackgroundColor3 = Color3.fromRGB(15, 10, 12)
+        bgFrame.BorderSizePixel = 0
+        bgFrame.Parent = introGui
 
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(0, 600, 0, 200)
-    container.Position = UDim2.new(0.5, -300, 0.5, -100)
-    container.BackgroundTransparency = 1
-    container.Parent = bgFrame
+        local container = Instance.new("Frame")
+        container.Size = UDim2.new(0, 400, 0, 150)
+        container.Position = UDim2.new(0.5, -200, 0.5, -75)
+        container.BackgroundTransparency = 1
+        container.Parent = bgFrame
 
-    local leftHorn = Instance.new("TextLabel")
-    leftHorn.Size = UDim2.new(0, 80, 0, 80)
-    leftHorn.Position = UDim2.new(0.5, -95, 0, -30)
-    leftHorn.BackgroundTransparency = 1
-    leftHorn.Text = "╭∩╮"
-    leftHorn.TextColor3 = Color3.fromRGB(255, 45, 90)
-    leftHorn.TextSize = 45
-    leftHorn.Font = Enum.Font.FredokaOne
-    leftHorn.TextTransparency = 1
-    leftHorn.Rotation = -15
-    leftHorn.Parent = container
+        local introText = Instance.new("TextLabel")
+        introText.Size = UDim2.new(1, 0, 1, 0)
+        introText.BackgroundTransparency = 1
+        introText.Text = "thanks for choosing power daddy 🍑💋"
+        introText.TextColor3 = Color3.fromRGB(255, 50, 90)
+        introText.TextSize = isMobile and 18 or 24
+        introText.Font = Enum.Font.GothamBold
+        introText.TextTransparency = 1
+        introText.Parent = container
 
-    local rightHorn = Instance.new("TextLabel")
-    rightHorn.Size = UDim2.new(0, 80, 0, 80)
-    rightHorn.Position = UDim2.new(0.5, 15, 0, -30)
-    rightHorn.BackgroundTransparency = 1
-    rightHorn.Text = "╭∩╮"
-    rightHorn.TextColor3 = Color3.fromRGB(255, 90, 130)
-    rightHorn.TextSize = 45
-    rightHorn.Font = Enum.Font.FredokaOne
-    rightHorn.TextTransparency = 1
-    rightHorn.Rotation = 15
-    rightHorn.Parent = container
-
-    local introText = Instance.new("TextLabel")
-    introText.Size = UDim2.new(1, 0, 0, 60)
-    introText.Position = UDim2.new(0, 0, 0.5, 10)
-    introText.BackgroundTransparency = 1
-    introText.Text = "thanks for choosing power daddy 🍑💋"
-    introText.TextColor3 = Color3.fromRGB(255, 50, 90)
-    introText.TextSize = 22
-    introText.Font = Enum.Font.GothamBold
-    introText.TextTransparency = 1
-    introText.Parent = container
-
-    TweenService:Create(leftHorn, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.5, -95, 0, -55)}):Play()
-    TweenService:Create(rightHorn, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.5, 15, 0, -55)}):Play()
-    TweenService:Create(introText, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
-
-    task.wait(2.5)
-
-    TweenService:Create(leftHorn, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
-    TweenService:Create(rightHorn, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
-    TweenService:Create(introText, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
-    local bgFade = TweenService:Create(bgFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency = 1})
-    bgFade:Play()
-    bgFade.Completed:Wait()
-    introGui:Destroy()
+        TweenService:Create(introText, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
+        task.wait(2.5)
+        
+        local fade = TweenService:Create(introText, TweenInfo.new(0.5), {TextTransparency = 1})
+        local bgFade = TweenService:Create(bgFrame, TweenInfo.new(0.5), {BackgroundTransparency = 1})
+        fade:Play() bgFade:Play()
+        fade.Completed:Wait()
+        introGui:Destroy()
+    end)
 end)
 
--- ==================== FISCH AUTO FISH LOGIC ====================
-local autoFishRunning = false
+-- ==================== REBUILT AUTO FISH LOGIC ====================
+local getgenv = getgenv or function() return _G end
+getgenv().AutoFish = false
+
+local function clickButton(button)
+    -- Method 1: Executor bypass (Extremely reliable on mobile)
+    if getconnections then
+        for _, conn in pairs(getconnections(button.MouseButton1Click)) do
+            conn:Fire()
+        end
+        for _, conn in pairs(getconnections(button.Activated)) do
+            conn:Fire()
+        end
+    end
+    
+    -- Method 2: VirtualInputManager Fallback (With GuiInset correction)
+    local guiInset = game:GetService("GuiService"):GetGuiInset()
+    local absPos = button.AbsolutePosition
+    local absSize = button.AbsoluteSize
+    local clickX = absPos.X + (absSize.X / 2)
+    local clickY = absPos.Y + (absSize.Y / 2) + guiInset.Y
+    
+    VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, true, game, 1)
+    VirtualInputManager:SendMouseButtonEvent(clickX, clickY, 0, false, game, 1)
+end
 
 task.spawn(function()
     while true do
-        if autoFishRunning then
+        if getgenv().AutoFish then
             pcall(function()
                 local char = LocalPlayer.Character
-                local backpack = LocalPlayer:FindFirstChild("Backpack")
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
                 local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
                 
-                if char and playerGui then
-                    -- Ensure rod is equipped from Backpack directly (works for both mobile & PC)
-                    local equippedTool = char:FindFirstChildOfClass("Tool")
-                    if not equippedTool and backpack then
-                        local rodTool = backpack:FindFirstChildOfClass("Tool")
-                        if rodTool then
-                            rodTool.Parent = char
-                            task.wait(0.3)
-                            equippedTool = rodTool
+                if char and hum and playerGui then
+                    -- 1. FOOLPROOF EQUIPPING (Checks Character, then Backpack)
+                    local rod = char:FindFirstChildOfClass("Tool") 
+                    if not rod then
+                        local backpack = LocalPlayer:FindFirstChild("Backpack")
+                        rod = backpack and backpack:FindFirstChildOfClass("Tool")
+                        if rod then
+                            hum:EquipTool(rod)
+                            task.wait(0.2)
                         end
                     end
                     
-                    if equippedTool then
+                    if rod then
+                        -- 2. REEL MINIGAME LOGIC
                         local reelGui = playerGui:FindFirstChild("reel")
                         if reelGui and reelGui.Enabled then
                             local bar = reelGui:FindFirstChild("bar", true)
-                            local fish = bar and bar:FindFirstChild("fish", true)
-                            local playerBar = bar and bar:FindFirstChild("playerbar", true)
-                            
-                            if fish and playerBar then
-                                playerBar.Position = fish.Position
+                            if bar then
+                                local fish = bar:FindFirstChild("fish")
+                                local pBar = bar:FindFirstChild("playerbar")
+                                if fish and pBar then
+                                    pBar.Position = fish.Position -- Lock bar to fish
+                                end
                             end
+                            
+                        -- 3. SHAKE MINIGAME LOGIC
                         else
                             local shakeGui = playerGui:FindFirstChild("shake")
                             if shakeGui and shakeGui.Enabled then
-                                local safeButton = shakeGui:FindFirstChild("safezone", true) or shakeGui:FindFirstChild("button", true) or shakeGui:FindFirstChildOfClass("ImageButton") or shakeGui:FindFirstChildOfClass("TextButton")
-                                if safeButton then
-                                    local absPos = safeButton.AbsolutePosition
-                                    local absSize = safeButton.AbsoluteSize
-                                    VirtualInputManager:SendMouseButtonEvent(absPos.X + absSize.X/2, absPos.Y + absSize.Y/2, 0, true, game, 1)
-                                    VirtualInputManager:SendMouseButtonEvent(absPos.X + absSize.X/2, absPos.Y + absSize.Y/2, 0, false, game, 1)
+                                -- Find the button no matter what it's named internally
+                                local safeBtn = shakeGui:FindFirstChild("safezone", true) 
+                                             or shakeGui:FindFirstChild("button", true) 
+                                             or shakeGui:FindFirstChildOfClass("ImageButton", true)
+                                             or shakeGui:FindFirstChildOfClass("TextButton", true)
+                                
+                                if safeBtn then
+                                    clickButton(safeBtn)
                                 end
+                                
+                        -- 4. CASTING LOGIC
                             else
-                                equippedTool:Activate()
+                                rod:Activate()
                             end
                         end
                     end
                 end
             end)
         end
-        task.wait(0.1)
+        task.wait(0.05) -- Fast loop for better minigame tracking
     end
 end)
 
--- ==================== LOAD MACLIB UI ====================
+-- ==================== MACLIB UI ====================
 local successLib, MacLib = pcall(function()
     return loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
 end)
 
-if not successLib or not MacLib then
-    return
-end
+if not successLib or not MacLib then return end
 
 local Window = MacLib:Window({
     Title = "Power",
     Subtitle = "Hub",
     Size = windowSize,
     DragStyle = 1,
-    AcrylicBlur = false, -- Disabled for mobile render stability
+    AcrylicBlur = false, -- Keep disabled so it doesn't turn invisible on mobile
 })
 
 local TabGroup = Window:TabGroup()
-
 local FishingTab = TabGroup:Tab({ Name = "Fishing", Image = "rbxassetid://10734950309" })
-local PlayerTab = TabGroup:Tab({ Name = "Player", Image = "rbxassetid://10734950309" })
 
 local FishingMain = FishingTab:Section({ Side = "Left" })
-local FishingSettings = FishingTab:Section({ Side = "Right" })
 
-FishingMain:Header({ Name = "Fishing Automation" })
+FishingMain:Header({ Name = "Automation" })
 
 FishingMain:Toggle({
     Name = "Auto Fish",
-    Description = "Equips rod, casts, shakes, and tracks bar for Fisch",
+    Description = "Fully handles equipping, casting, shaking, and reeling.",
     Default = false,
     Callback = function(Value)
-        autoFishRunning = Value
+        getgenv().AutoFish = Value
     end
 })
 
 FishingMain:Toggle({
-    Name = "Auto Cast Rod",
-    Description = "Casts for you",
+    Name = "Auto Cast Only",
+    Description = "Only throws the bobber.",
     Default = false,
     Callback = function(Value)
+        -- Placeholder for separate cast feature
     end
 })
 
-FishingMain:Toggle({
-    Name = "Auto Buy Bait",
-    Description = "Buys bait for you",
-    Default = false,
-    Callback = function(Value)
-    end
-})
-
-FishingSettings:Header({ Name = "Configuration" })
-
-FishingSettings:Input({
-    Name = "Amount to buy",
-    Description = "How much to buy",
-    Placeholder = "3",
-    Numeric = true,
-    Callback = function(Value)
-    end
-})
-
-FishingSettings:Input({
-    Name = "Interval (seconds)",
-    Description = "How often",
-    Placeholder = "5",
-    Numeric = true,
-    Callback = function(Value)
-    end
-})
-
-local PlayerMain = PlayerTab:Section({ Side = "Left" })
-PlayerMain:Header({ Name = "Movement Options" })
-
-PlayerMain:Toggle({
-    Name = "Freeze Character",
-    Description = "Stops you from moving",
-    Default = false,
-    Callback = function(Value)
-    end
-})
-
--- ==================== MOBILE TOGGLE BUTTON ====================
+-- ==================== DRAGGABLE MOBILE TOGGLE ====================
 if isMobile then
     task.spawn(function()
         pcall(function()
@@ -231,56 +188,40 @@ if isMobile then
             screenGui.Name = "PowerMobileToggle"
             screenGui.ResetOnSpawn = false
             screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-            
-            local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:FindFirstChildOfClass("PlayerGui")
-            screenGui.Parent = parent
+            screenGui.Parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:FindFirstChildOfClass("PlayerGui")
 
-            -- Using a TextButton with a gorgeous gradient/border so it never fails to load an image
-            local imageButton = Instance.new("TextButton")
-            imageButton.Name = "ToggleButton"
-            imageButton.Size = UDim2.new(0, 55, 0, 55)
-            imageButton.Position = UDim2.new(0, 20, 0.5, -27)
-            imageButton.BackgroundColor3 = Color3.fromRGB(25, 15, 20)
-            imageButton.Text = "⚡"
-            imageButton.TextSize = 26
-            imageButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            imageButton.BorderSizePixel = 0
-            imageButton.Draggable = true
-            imageButton.Parent = screenGui
+            local toggleBtn = Instance.new("TextButton")
+            toggleBtn.Size = UDim2.new(0, 50, 0, 50)
+            toggleBtn.Position = UDim2.new(0, 15, 0.5, -25)
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            toggleBtn.Text = "⚡"
+            toggleBtn.TextSize = 24
+            toggleBtn.BorderSizePixel = 0
+            toggleBtn.Draggable = true
+            toggleBtn.Parent = screenGui
 
             local corner = Instance.new("UICorner")
             corner.CornerRadius = UDim.new(1, 0)
-            corner.Parent = imageButton
+            corner.Parent = toggleBtn
 
             local stroke = Instance.new("UIStroke")
-            stroke.Color = Color3.fromRGB(255, 50, 95)
-            stroke.Thickness = 3
-            stroke.Parent = imageButton
+            stroke.Color = Color3.fromRGB(255, 45, 90)
+            stroke.Thickness = 2
+            stroke.Parent = toggleBtn
 
-            local gradient = Instance.new("UIGradient")
-            gradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 40, 80)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 20, 50))
-            })
-            gradient.Rotation = 45
-            gradient.Parent = imageButton
-
-            local isOpen = true
-            imageButton.MouseButton1Click:Connect(function()
-                isOpen = not isOpen
-                for _, gui in ipairs({CoreGui, LocalPlayer:FindFirstChild("PlayerGui")}) do
-                    if gui then
-                        for _, desc in ipairs(gui:GetDescendants()) do
-                            if desc:IsA("TextLabel") and desc.Text == "Power" then
-                                local parentFrame = desc.Parent
-                                while parentFrame and parentFrame ~= gui do
-                                    if parentFrame:IsA("Frame") and parentFrame.Size.X.Offset > 200 then
-                                        parentFrame.Visible = isOpen
-                                        break
-                                    end
-                                    parentFrame = parentFrame.Parent
-                                end
+            local isUIOpen = true
+            toggleBtn.MouseButton1Click:Connect(function()
+                isUIOpen = not isUIOpen
+                -- MacLib lacks a built-in toggle command in this version, so we manually hide the frame
+                for _, gui in ipairs(CoreGui:GetDescendants()) do
+                    if gui:IsA("TextLabel") and gui.Text == "Power" then
+                        local parent = gui.Parent
+                        while parent and parent ~= CoreGui do
+                            if parent:IsA("Frame") and parent.Size.X.Offset >= 300 then
+                                parent.Visible = isUIOpen
+                                break
                             end
+                            parent = parent.Parent
                         end
                     end
                 end
@@ -289,8 +230,4 @@ if isMobile then
     end)
 end
 
-Window:Notify({
-    Title = "Power",
-    Description = "Power has executed",
-    Lifetime = 5
-})
+Window:Notify({ Title = "Power", Description = "Successfully Executed!", Lifetime = 5 })
