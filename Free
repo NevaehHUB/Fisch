@@ -10,8 +10,8 @@ local LocalPlayer = Players.LocalPlayer
 -- Check if the player is on a mobile/touch device
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
--- Dynamic sizing: Larger for PC (800x500), compact for Mobile (480x280)
-local windowSize = isMobile and UDim2.fromOffset(480, 280) or UDim2.fromOffset(800, 500)
+-- Dynamic sizing: Larger for PC (800x500), compact and small for Mobile (360x220)
+local windowSize = isMobile and UDim2.fromOffset(360, 220) or UDim2.fromOffset(800, 500)
 
 -- ==================== FULLSCREEN INTRO / LOADING SCREEN ====================
 local introGui = Instance.new("ScreenGui")
@@ -111,7 +111,6 @@ task.spawn(function()
         if autoFishRunning then
             pcall(function()
                 local char = LocalPlayer.Character
-                local humanoidRootPart = char and char:FindFirstChild("HumanoidRootPart")
                 local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
                 
                 if char and playerGui then
@@ -126,10 +125,6 @@ task.spawn(function()
                     end
                     
                     if equippedTool then
-                        -- 2. Check if casting or reeling is needed
-                        local activeGui = playerGui:FindFirstChild("reel") or playerGui:FindFirstChild("bar") or playerGui:FindFirstChild("shake")
-                        
-                        -- If minigame/bar is active, handle it ("follow the fish ui on the bar")
                         local reelGui = playerGui:FindFirstChild("reel")
                         if reelGui and reelGui.Enabled then
                             local bar = reelGui:FindFirstChild("bar", true)
@@ -137,23 +132,19 @@ task.spawn(function()
                             local playerBar = bar and bar:FindFirstChild("playerbar", true)
                             
                             if fish and playerBar then
-                                -- Align player bar position to fish position automatically
                                 playerBar.Position = fish.Position
                             end
                         else
-                            -- Check if shake button/ui is active ("click shake until about to catch fish")
                             local shakeGui = playerGui:FindFirstChild("shake")
                             if shakeGui and shakeGui.Enabled then
                                 local safeButton = shakeGui:FindFirstChild("safezone", true) or shakeGui:FindFirstChild("button", true)
                                 if safeButton then
-                                    -- Simulate click on shake button
                                     local absPos = safeButton.AbsolutePosition
                                     local absSize = safeButton.AbsoluteSize
                                     VirtualInputManager:SendMouseButtonEvent(absPos.X + absSize.X/2, absPos.Y + absSize.Y/2, 0, true, game, 1)
                                     VirtualInputManager:SendMouseButtonEvent(absPos.X + absSize.X/2, absPos.Y + absSize.Y/2, 0, false, game, 1)
                                 end
                             else
-                                -- Cast the rod if nothing is active
                                 equippedTool:Activate()
                             end
                         end
@@ -168,7 +159,7 @@ end)
 -- ==================== MAIN MACLIB UI ====================
 local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
 
--- Create the main window (Larger for PC, compact for mobile)
+-- Create the main window with optimized mobile/PC sizing
 local Window = MacLib:Window({
     Title = "Power",
     Subtitle = "Im so naughty",
@@ -268,8 +259,8 @@ if isMobile then
 
             local imageButton = Instance.new("ImageButton")
             imageButton.Name = "ToggleButton"
-            imageButton.Size = UDim2.new(0, 55, 0, 55)
-            imageButton.Position = UDim2.new(0, 20, 0.5, -27)
+            imageButton.Size = UDim2.new(0, 50, 0, 50)
+            imageButton.Position = UDim2.new(0, 20, 0.5, -25)
             imageButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             imageButton.BorderSizePixel = 0
             imageButton.Draggable = true
@@ -310,7 +301,7 @@ if isMobile then
                             if desc:IsA("TextLabel") and desc.Text == "Power" then
                                 local parentFrame = desc.Parent
                                 while parentFrame and parentFrame ~= gui do
-                                    if parentFrame:IsA("Frame") and parentFrame.Size.X.Offset > 300 then
+                                    if parentFrame:IsA("Frame") and parentFrame.Size.X.Offset > 250 then
                                         parentFrame.Visible = isOpen
                                         break
                                     end
@@ -329,5 +320,5 @@ end
 Window:Notify({
     Title = "Power",
     Description = "Thanks for executing daddy",
-    Lifetime = 5
+    Lifetime = 3
 })
