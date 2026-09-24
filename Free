@@ -9,7 +9,7 @@ local LocalPlayer = Players.LocalPlayer
 -- Check if player is on mobile
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
--- Fixed mobile sizing (larger enough so elements don't get hidden) vs PC sizing
+-- Sizing: Compact for mobile, spacious for PC
 local windowSize = isMobile and UDim2.fromOffset(450, 280) or UDim2.fromOffset(800, 500)
 
 -- ==================== FULLSCREEN INTRO ====================
@@ -85,10 +85,6 @@ local successIntro, introErr = pcall(function()
     introGui:Destroy()
 end)
 
-if not successIntro then
-    warn("Intro skipped due to error: " + tostring(introErr))
-end
-
 -- ==================== FISCH AUTO FISH LOGIC ====================
 local autoFishRunning = false
 
@@ -97,16 +93,19 @@ task.spawn(function()
         if autoFishRunning then
             pcall(function()
                 local char = LocalPlayer.Character
+                local backpack = LocalPlayer:FindFirstChild("Backpack")
                 local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
                 
                 if char and playerGui then
+                    -- Ensure rod is equipped from Backpack directly (works for both mobile & PC)
                     local equippedTool = char:FindFirstChildOfClass("Tool")
-                    if not equippedTool then
-                        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.One, false, game)
-                        task.wait(0.05)
-                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.One, false, game)
-                        task.wait(0.3)
-                        equippedTool = char:FindFirstChildOfClass("Tool")
+                    if not equippedTool and backpack then
+                        local rodTool = backpack:FindFirstChildOfClass("Tool")
+                        if rodTool then
+                            rodTool.Parent = char
+                            task.wait(0.3)
+                            equippedTool = rodTool
+                        end
                     end
                     
                     if equippedTool then
@@ -122,7 +121,7 @@ task.spawn(function()
                         else
                             local shakeGui = playerGui:FindFirstChild("shake")
                             if shakeGui and shakeGui.Enabled then
-                                local safeButton = shakeGui:FindFirstChild("safezone", true) or shakeGui:FindFirstChild("button", true)
+                                local safeButton = shakeGui:FindFirstChild("safezone", true) or shakeGui:FindFirstChild("button", true) or shakeGui:FindFirstChildOfClass("ImageButton") or shakeGui:FindFirstChildOfClass("TextButton")
                                 if safeButton then
                                     local absPos = safeButton.AbsolutePosition
                                     local absSize = safeButton.AbsoluteSize
@@ -147,7 +146,6 @@ local successLib, MacLib = pcall(function()
 end)
 
 if not successLib or not MacLib then
-    warn("Failed to load MacLib!")
     return
 end
 
@@ -156,7 +154,7 @@ local Window = MacLib:Window({
     Subtitle = "Hub",
     Size = windowSize,
     DragStyle = 1,
-    AcrylicBlur = false, -- Disabled to prevent mobile invisibility bugs
+    AcrylicBlur = false, -- Disabled for mobile render stability
 })
 
 local TabGroup = Window:TabGroup()
@@ -237,11 +235,15 @@ if isMobile then
             local parent = (gethui and gethui()) or CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:FindFirstChildOfClass("PlayerGui")
             screenGui.Parent = parent
 
-            local imageButton = Instance.new("ImageButton")
+            -- Using a TextButton with a gorgeous gradient/border so it never fails to load an image
+            local imageButton = Instance.new("TextButton")
             imageButton.Name = "ToggleButton"
-            imageButton.Size = UDim2.new(0, 50, 0, 50)
-            imageButton.Position = UDim2.new(0, 20, 0.5, -25)
-            imageButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            imageButton.Size = UDim2.new(0, 55, 0, 55)
+            imageButton.Position = UDim2.new(0, 20, 0.5, -27)
+            imageButton.BackgroundColor3 = Color3.fromRGB(25, 15, 20)
+            imageButton.Text = "⚡"
+            imageButton.TextSize = 26
+            imageButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             imageButton.BorderSizePixel = 0
             imageButton.Draggable = true
             imageButton.Parent = screenGui
@@ -251,9 +253,17 @@ if isMobile then
             corner.Parent = imageButton
 
             local stroke = Instance.new("UIStroke")
-            stroke.Color = Color3.fromRGB(255, 75, 100)
-            stroke.Thickness = 2.5
+            stroke.Color = Color3.fromRGB(255, 50, 95)
+            stroke.Thickness = 3
             stroke.Parent = imageButton
+
+            local gradient = Instance.new("UIGradient")
+            gradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 40, 80)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 20, 50))
+            })
+            gradient.Rotation = 45
+            gradient.Parent = imageButton
 
             local isOpen = true
             imageButton.MouseButton1Click:Connect(function()
